@@ -7,9 +7,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="0 second" />
   <meta name="theme-color" content="#0d1015" />
-  <title>0 second - ゼロ秒思考 手書きPWA</title>
+  <title>0 second - 1 minute memo</title>
 
-  <!-- 暗めデジタル調「0 second」ホーム画面アイコン & PWA Manifest 動的生成 -->
+  <!-- 「0 second」ホーム画面アイコン & PWA Manifest 動的生成（0を目立たせ、よく見ると∞とペンが含まれるデザインに変更） -->
   <script>
     (function setupDigitalIconAndPWA() {
       const c = document.createElement('canvas');
@@ -17,81 +17,95 @@
       c.height = 512;
       const g = c.getContext('2d');
 
+      // 1. 暗いサイバーグラデーション背景
       const bgGrad = g.createLinearGradient(0, 0, 512, 512);
       bgGrad.addColorStop(0, '#090c10');
       bgGrad.addColorStop(1, '#141b26');
       g.fillStyle = bgGrad;
       g.fillRect(0, 0, 512, 512);
 
-      g.strokeStyle = 'rgba(56, 189, 248, 0.12)';
-      g.lineWidth = 2;
-      for (let i = 48; i < 512; i += 64) {
+      // 2. 控えめなデジタルグリッド
+      g.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+      g.lineWidth = 1.5;
+      for (let i = 32; i < 512; i += 48) {
         g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 512); g.stroke();
         g.beginPath(); g.moveTo(0, i); g.lineTo(512, i); g.stroke();
       }
 
-      g.save();
-      g.strokeStyle = 'rgba(56, 189, 248, 0.35)';
-      g.fillStyle = 'rgba(15, 23, 42, 0.78)';
-      g.lineWidth = 3;
-      g.beginPath();
-      g.roundRect(88, 118, 336, 240, 18);
-      g.fill();
-      g.stroke();
-
-      g.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+      // かすかな回路パターン
+      g.strokeStyle = 'rgba(56, 189, 248, 0.12)';
       g.lineWidth = 2;
-      for (let r = 0; r < 5; r++) {
-        const ly = 160 + r * 36;
-        g.beginPath(); g.moveTo(114, ly); g.lineTo(240, ly); g.stroke();
-      }
-      g.restore();
-
-      g.save();
-      g.shadowColor = '#0ea5e9';
-      g.shadowBlur = 24;
-      g.strokeStyle = '#38bdf8';
-      g.lineWidth = 16;
       g.beginPath();
-      g.ellipse(256, 228, 86, 126, 0, 0, Math.PI * 2);
+      g.moveTo(40, 200); g.lineTo(100, 200); g.lineTo(130, 170);
+      g.moveTo(472, 312); g.lineTo(412, 312); g.lineTo(382, 342);
       g.stroke();
 
-      g.strokeStyle = '#e0f2fe';
-      g.lineWidth = 5;
+      // 3. 背後の控えめな「∞（無限大）」
+      g.save();
+      g.shadowColor = '#0284c7';
+      g.shadowBlur = 12;
+      g.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      g.lineWidth = 14;
+      g.lineCap = 'round';
+      g.lineJoin = 'round';
+      // 左ループと右ループ
       g.beginPath();
-      g.ellipse(256, 228, 86, 126, 0, 0, Math.PI * 2);
+      // 中心(256, 256)から交差するように一筆書き
+      g.moveTo(256, 256);
+      g.bezierCurveTo(200, 180, 130, 180, 130, 256);
+      g.bezierCurveTo(130, 332, 200, 332, 256, 256);
+      g.bezierCurveTo(312, 180, 382, 180, 382, 256);
+      g.bezierCurveTo(382, 332, 312, 332, 256, 256);
       g.stroke();
       g.restore();
 
+      // 4. 背後の細いスタイラスペン
       g.save();
-      g.translate(328, 196);
-      g.rotate(Math.PI / 4);
-      g.shadowColor = '#38bdf8';
-      g.shadowBlur = 16;
-      const penGrad = g.createLinearGradient(-12, -130, 12, 130);
-      penGrad.addColorStop(0, '#38bdf8');
-      penGrad.addColorStop(0.5, '#1e3a8a');
-      penGrad.addColorStop(1, '#7dd3fc');
+      g.translate(256, 256);
+      g.rotate(Math.PI / 4.5); // 斜めの傾き
+      const penGrad = g.createLinearGradient(-6, -160, 6, 160);
+      penGrad.addColorStop(0, 'rgba(56, 189, 248, 0.6)');
+      penGrad.addColorStop(1, 'rgba(14, 165, 233, 0.25)');
       g.fillStyle = penGrad;
       g.beginPath();
-      g.roundRect(-11, -120, 22, 195, 8);
+      g.roundRect(-5, -150, 10, 260, 3);
       g.fill();
-      g.fillStyle = '#e0f2fe';
+      // ペンの先端
+      g.fillStyle = 'rgba(224, 242, 254, 0.5)';
       g.beginPath();
-      g.moveTo(-11, 75);
-      g.lineTo(11, 75);
-      g.lineTo(0, 114);
+      g.moveTo(-5, 110);
+      g.lineTo(5, 110);
+      g.lineTo(0, 140);
       g.closePath();
       g.fill();
       g.restore();
 
+      // 5. 最前面に太く目立つ「0（ゼロ）」
+      g.save();
+      g.shadowColor = '#38bdf8';
+      g.shadowBlur = 28;
+      const zeroGrad = g.createLinearGradient(0, 80, 0, 400);
+      zeroGrad.addColorStop(0, '#ffffff');
+      zeroGrad.addColorStop(0.5, '#e0f2fe');
+      zeroGrad.addColorStop(1, '#38bdf8');
+      g.strokeStyle = zeroGrad;
+      g.lineWidth = 26;
+      g.lineCap = 'round';
+      
+      // 縦長の楕円「0」
+      g.beginPath();
+      g.ellipse(256, 240, 82, 145, 0, 0, Math.PI * 2);
+      g.stroke();
+      g.restore();
+
+      // 6. 「0 second」文字の配置
       g.save();
       g.shadowColor = '#0284c7';
-      g.shadowBlur = 14;
-      g.fillStyle = '#e2e8f0';
-      g.font = '700 68px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      g.shadowBlur = 10;
+      g.fillStyle = '#f1f5f9';
+      g.font = '700 48px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
       g.textAlign = 'center';
-      g.fillText('second', 256, 456);
+      g.fillText('0 second', 256, 452);
       g.restore();
 
       const pngDataUrl = c.toDataURL('image/png');
@@ -109,7 +123,7 @@
       document.head.appendChild(favIcon);
 
       const manifest = {
-        name: '0 second - ゼロ秒思考手書き',
+        name: '0 second - 1 minute memo',
         short_name: '0 second',
         start_url: './',
         display: 'standalone',
@@ -175,7 +189,6 @@
       position: relative;
     }
 
-    /* 独立オーバーレイヘッダー（非表示時も下の用紙座標は1pxも動かない） */
     .top-header-overlay {
       position: fixed;
       top: env(safe-area-inset-top);
@@ -191,7 +204,6 @@
       pointer-events: none;
     }
 
-    /* 1段目：左に3タブ、右端に「筆記中隠す」「全画面」「完了・次へ」 */
     .top-bar-primary {
       display: flex;
       align-items: center;
@@ -203,7 +215,6 @@
       height: 46px;
     }
 
-    /* 2段目：ペン設定・統計・タイマー（新規メモ時のみ表示） */
     .top-bar-secondary {
       display: flex;
       align-items: center;
@@ -371,7 +382,6 @@
       50% { opacity: 0.35; }
     }
 
-    /* 常時最上部に固定されたプログレスバー（ツールバー収納後も左から右へ進行） */
     .progress-track {
       position: fixed;
       top: env(safe-area-inset-top);
@@ -394,13 +404,11 @@
       transform-origin: left;
       transform: scaleX(0);
       transition: transform 0.08s linear, background 0.3s;
-      position: relative;
     }
     .progress-bar.urgent {
       background: linear-gradient(90deg, #dc2626, #ef4444, #fca5a5);
     }
 
-    /* 各ビューの配置（ヘッダー高さを確保し、用紙のタイトル・日付を絶対に隠さない） */
     .view-section {
       display: none;
       flex: 1;
@@ -415,7 +423,6 @@
       display: flex;
     }
 
-    /* 手書きステージ（ツールバー収納時も座標と余白を完全固定） */
     .canvas-stage {
       flex: 1;
       display: flex;
@@ -472,7 +479,6 @@
       border-radius: 4px;
     }
 
-    /* ツールバー非表示時に上部ダーク領域（用紙の外側）に収まるミニ操作バー */
     .floating-hud {
       position: fixed;
       top: calc(env(safe-area-inset-top) + 14px);
@@ -639,14 +645,11 @@
 </head>
 <body>
   <div class="app-container" id="appContainer">
-    <!-- 最上部タイムバー（左から右へ進行：ツールバー収納時も常時表示） -->
     <div class="progress-track" id="progressTrack">
       <div id="progressBar" class="progress-bar"></div>
     </div>
 
-    <!-- 独立オーバーレイヘッダー -->
     <div class="top-header-overlay">
-      <!-- 1段目：左に3タブ ／ 右端に「筆記中隠す」「全画面」「完了・次へ」 -->
       <header class="top-bar-primary">
         <nav class="nav-tabs">
           <button class="nav-tab active" data-view="writeView">✍️ 新規メモ</button>
@@ -661,7 +664,6 @@
         </div>
       </header>
 
-      <!-- 2段目：新規メモ用ツール（フォルダ・ペン設定・統計・タイマー） -->
       <div class="top-bar-secondary" id="writeTools">
         <div class="tool-group">
           <select id="writeFolderSelect" title="保存先フォルダ"></select>
@@ -671,9 +673,9 @@
           <button class="color-dot" data-color="#dc2626" style="background:#dc2626;" title="赤（重要注釈）"></button>
 
           <div class="width-group" title="ペンの太さ">
-            <button class="width-btn" data-width="4.5">細</button>
-            <button class="width-btn active" data-width="6.2">中</button>
-            <button class="width-btn" data-width="8.2">太</button>
+            <button class="width-btn" data-width="4.8">細</button>
+            <button class="width-btn active" data-width="6.5">中</button>
+            <button class="width-btn" data-width="8.5">太</button>
           </div>
 
           <button id="eraserBtn" title="消しゴム">消しゴム</button>
@@ -697,7 +699,6 @@
       </div>
     </div>
 
-    <!-- ツールバー収納時に上部ダーク余白に収まるミニ操作バー（用紙のタイトル・日付には一切かからない） -->
     <div class="floating-hud" id="floatingHud">
       <span id="hudTimerDisplay" class="hud-timer">60.0</span>
       <button class="hud-dot active" data-color="#111827" style="background:#111827;" title="黒"></button>
@@ -712,7 +713,7 @@
       <main class="canvas-stage" id="canvasStage">
         <div class="paper-wrapper" id="paperWrapper">
           <canvas id="memoCanvas" width="2400" height="1697"></canvas>
-          <div class="status-badge" id="statusBadge">書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）</div>
+          <div class="status-badge" id="statusBadge">1 minute memo：書き始めると自動で60秒タイマーが開始します（最大6行＋注釈余白）</div>
         </div>
       </main>
     </section>
@@ -752,7 +753,7 @@
 
   <script>
     // ==========================================
-    // 1. 高精細キャンバス設定＆強化型2段階手ブレ補正パラメータ
+    // 1. 高精細キャンバス設定＆かすれ防止・軽快手ブレ補正パラメータ
     // ==========================================
     const CANVAS_W = 2400;
     const CANVAS_H = 1697;
@@ -770,7 +771,7 @@
     let penOnly = true;
     let isEraser = false;
     let currentColor = '#111827';
-    let baseLineWidth = 6.2;
+    let baseLineWidth = 6.5;
 
     let autoHideOnWrite = JSON.parse(localStorage.getItem('zm_auto_hide_toolbar') ?? 'true');
     let isZenMode = false;
@@ -780,34 +781,27 @@
     let isDrawing = false;
     let activePointerId = null;
 
-    // 60秒経過時の「書き終わり待機」＆「切替直後の誤描画ロック」制御
     let pendingAutoSave = false;
     let autoSaveDelayTimer = null;
     let inputLockedUntil = 0;
 
-    // 強化型2段階手ブレ補正（1段目で高周波の震えを吸収し、2段目で滑らかな曲線へ整形）
-    let s1X = 0, s1Y = 0;
     let smoothX = 0, smoothY = 0;
-    let smoothP = 0.5;
-    const STAGE1_SMOOTHING = 0.36;   // 1段目フィルタ（数値を下げるほど手ブレ吸収が強くなる）
-    const STAGE2_SMOOTHING = 0.44;   // 2段目フィルタ（2重平滑化で丸みのある美しい線にする）
-    const PRESSURE_SMOOTHING = 0.25; // 筆圧の急変をさらに抑えて文字の太さを均一化
-    const MIN_POINT_DIST = 3.2;      // 3.2px未満の微細な震え点を間引き
+    let smoothP = 0.6;
+    const POS_SMOOTHING = 0.68;
+    const PRESSURE_SMOOTHING = 0.55;
+    const MIN_POINT_DIST = 1.4;
 
-    // 既存メモ編集状態
     let editingMemoId = null;
     let editingMemoDateStr = null;
     let editingMemoCreatedAt = null;
     let editingMemoFolder = UNCLASSIFIED;
 
-    // タイマー状態
     let remainingTime = LIMIT_SECONDS;
     let timerRunning = false;
     let timerStartedForSheet = false;
     let lastTickTime = null;
     let rafId = null;
 
-    // フォルダ状態
     const INITIAL_FOLDERS = [UNCLASSIFIED, '思考整理', '仕事', 'アイデア', 'トレード・相場'];
     let folders = JSON.parse(localStorage.getItem('zm_pen6_folders') || 'null') || [...INITIAL_FOLDERS];
     if (!folders.includes(UNCLASSIFIED)) folders.unshift(UNCLASSIFIED);
@@ -817,7 +811,7 @@
     let sortNewestFirst = true;
 
     // ==========================================
-    // 2. ツールバー表示切替（レイアウトシフト0px）
+    // 2. ツールバー表示切替
     // ==========================================
     function setZenMode(enabled, useBrowserFullscreen = false) {
       isZenMode = enabled;
@@ -850,7 +844,7 @@
     // ==========================================
     // 3. IndexedDB
     // ==========================================
-    const DB_NAME = 'ZeroMemoPen6LinesDB';
+    const DB_NAME = 'OneMinuteMemoPenDB';
     const DB_VERSION = 1;
     const STORE_NAME = 'memos';
     let db = null;
@@ -1045,19 +1039,19 @@
 
     function getWidthFromPressure(base, pressure, eraser) {
       if (eraser) return 44;
-      const p = (pressure && pressure > 0) ? pressure : 0.5;
-      return base * (0.80 + p * 0.40);
+      const p = (pressure && pressure > 0) ? Math.max(0.35, pressure) : 0.6;
+      return base * (0.88 + p * 0.28);
     }
 
     // ==========================================
-    // 5. Apple Pencil 描画制御（2段階手ブレ補正＆切替保護）
+    // 5. Apple Pencil 描画制御
     // ==========================================
     function getRawCanvasCoords(e) {
       const rect = canvas.getBoundingClientRect();
       return {
         x: (e.clientX - rect.left) * (CANVAS_W / rect.width),
         y: (e.clientY - rect.top) * (CANVAS_H / rect.height),
-        p: e.pressure !== undefined ? e.pressure : 0.5
+        p: e.pressure !== undefined ? e.pressure : 0.6
       };
     }
 
@@ -1084,11 +1078,9 @@
 
       isDrawing = true;
       const raw = getRawCanvasCoords(e);
-      s1X = raw.x;
-      s1Y = raw.y;
       smoothX = raw.x;
       smoothY = raw.y;
-      smoothP = (raw.p && raw.p > 0) ? raw.p : 0.5;
+      smoothP = (raw.p && raw.p > 0.5) ? raw.p : 0.55;
 
       const startPt = { x: smoothX, y: smoothY, p: smoothP };
       currentStroke = {
@@ -1120,13 +1112,9 @@
       for (const ev of events) {
         const raw = getRawCanvasCoords(ev);
 
-        // 2段階カスケード指数平滑化で強い手ブレ補正を実現
-        s1X = s1X + (raw.x - s1X) * STAGE1_SMOOTHING;
-        s1Y = s1Y + (raw.y - s1Y) * STAGE1_SMOOTHING;
-        smoothX = smoothX + (s1X - smoothX) * STAGE2_SMOOTHING;
-        smoothY = smoothY + (s1Y - smoothY) * STAGE2_SMOOTHING;
-
-        const targetP = (raw.p && raw.p > 0) ? raw.p : 0.5;
+        smoothX = smoothX + (raw.x - smoothX) * POS_SMOOTHING;
+        smoothY = smoothY + (raw.y - smoothY) * POS_SMOOTHING;
+        const targetP = (raw.p && raw.p > 0) ? Math.max(0.4, raw.p) : 0.6;
         smoothP = smoothP + (targetP - smoothP) * PRESSURE_SMOOTHING;
 
         const lastPt = pts[pts.length - 1];
@@ -1137,27 +1125,34 @@
         const newPt = { x: smoothX, y: smoothY, p: smoothP };
         pts.push(newPt);
 
-        if (pts.length >= 3) {
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
+
+        if (pts.length === 2) {
+          ctx.lineWidth = getWidthFromPressure(currentStroke.width, newPt.p, currentStroke.isEraser);
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          ctx.lineTo(pts[1].x, pts[1].y);
+          ctx.stroke();
+        } else if (pts.length >= 3) {
           const p0 = pts[pts.length - 3];
           const p1 = pts[pts.length - 2];
           const p2 = pts[pts.length - 1];
 
-          const startX = pts.length === 3 ? p0.x : (p0.x + p1.x) / 2;
-          const startY = pts.length === 3 ? p0.y : (p0.y + p1.y) / 2;
+          const startX = (p0.x + p1.x) / 2;
+          const startY = (p0.y + p1.y) / 2;
           const endX = (p1.x + p2.x) / 2;
           const endY = (p1.y + p2.y) / 2;
 
-          ctx.save();
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-          ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
           ctx.lineWidth = getWidthFromPressure(currentStroke.width, p1.p, currentStroke.isEraser);
           ctx.beginPath();
           ctx.moveTo(startX, startY);
           ctx.quadraticCurveTo(p1.x, p1.y, endX, endY);
           ctx.stroke();
-          ctx.restore();
         }
+        ctx.restore();
       }
     });
 
@@ -1167,12 +1162,12 @@
 
       if (currentStroke && currentStroke.points.length >= 1) {
         const pts = currentStroke.points;
-        // ペンを離した最終座標へ滑らかに吸着させ、止め・跳ねが短くならないように補完
         if (finalEvent && finalEvent.clientX !== undefined) {
           const endRaw = getRawCanvasCoords(finalEvent);
-          const snapX = smoothX + (endRaw.x - smoothX) * 0.65;
-          const snapY = smoothY + (endRaw.y - smoothY) * 0.65;
-          pts.push({ x: snapX, y: snapY, p: smoothP });
+          const last = pts[pts.length - 1];
+          if (Math.hypot(endRaw.x - last.x, endRaw.y - last.y) > 0.5) {
+            pts.push({ x: endRaw.x, y: endRaw.y, p: smoothP });
+          }
         }
 
         if (pts.length >= 2) {
@@ -1219,7 +1214,7 @@
     document.addEventListener('gesturestart', (e) => e.preventDefault());
 
     // ==========================================
-    // 6. 1分タイマー制御（左から右へ進行する視覚バー）
+    // 6. 1分タイマー制御
     // ==========================================
     const timerDisplay = document.getElementById('timerDisplay');
     const hudTimerDisplay = document.getElementById('hudTimerDisplay');
@@ -1232,7 +1227,6 @@
       timerDisplay.textContent = valStr;
       hudTimerDisplay.textContent = valStr;
 
-      // 経過割合（0.0 -> 1.0）を計算し、バーが左から右へ伸びて進むように描画
       const elapsedRatio = Math.min(1, Math.max(0, (LIMIT_SECONDS - remainingTime) / LIMIT_SECONDS));
       progressBar.style.transform = `scaleX(${elapsedRatio})`;
 
@@ -1310,7 +1304,7 @@
       saveNextBtn.textContent = '完了・次へ ➔';
       saveNextBtn.className = 'primary';
       document.getElementById('hudSaveNextBtn').textContent = '完了・次へ ➔';
-      document.getElementById('statusBadge').textContent = '書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）';
+      document.getElementById('statusBadge').textContent = '1 minute memo：書き始めると自動で60秒タイマーが開始します（最大6行＋注釈余白）';
       updateTimerUI();
     }
 
@@ -1575,7 +1569,7 @@
         doc.addImage(m.imageDataUrl, 'JPEG', 0, 0, 297, 210);
       });
 
-      const fileName = `0second_${selectedBrowseFolder}_${getTodayString().replace(/\//g, '-')}.pdf`;
+      const fileName = `1minute-memo_${selectedBrowseFolder}_${getTodayString().replace(/\//g, '-')}.pdf`;
       doc.save(fileName);
       showToast(`PDF出力完了: ${fileName}`);
     }
