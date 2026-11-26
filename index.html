@@ -174,6 +174,22 @@
       position: relative;
     }
 
+    /* 上部ナビゲーション＆ツールバー（独立オーバーレイ配置：非表示時も用紙位置を一切動かさない） */
+    .top-header-overlay {
+      position: fixed;
+      top: env(safe-area-inset-top);
+      left: env(safe-area-inset-left);
+      right: env(safe-area-inset-right);
+      z-index: 700;
+      transition: opacity 0.2s ease, transform 0.22s ease;
+    }
+
+    .app-container.zen-mode .top-header-overlay {
+      opacity: 0;
+      transform: translateY(-100%);
+      pointer-events: none;
+    }
+
     .top-bar {
       display: flex;
       align-items: center;
@@ -182,12 +198,7 @@
       padding: 7px 14px;
       background: var(--panel-dark);
       border-bottom: 1px solid var(--border-dark);
-      flex-shrink: 0;
       flex-wrap: wrap;
-    }
-
-    .app-container.zen-mode .top-bar {
-      display: none;
     }
 
     .nav-tabs {
@@ -350,7 +361,6 @@
       width: 100%;
       height: 4px;
       background: #1e293b;
-      flex-shrink: 0;
     }
     .progress-bar {
       height: 100%;
@@ -363,28 +373,28 @@
       background: var(--danger);
     }
 
+    /* 各ビューは常に同じ上端余白（56px）を保持し、ツールバー開閉で座標がズレないように固定 */
     .view-section {
       display: none;
       flex: 1;
       overflow: hidden;
       flex-direction: column;
+      padding-top: 56px;
     }
     .view-section.active {
       display: flex;
     }
 
+    /* 手書きステージ（zen-mode時もpaddingを変えず用紙座標を完全固定） */
     .canvas-stage {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 10px;
+      padding: 8px 12px 10px 12px;
       overflow: hidden;
       touch-action: none;
       position: relative;
-    }
-    .app-container.zen-mode .canvas-stage {
-      padding: 6px;
     }
 
     .paper-wrapper {
@@ -432,14 +442,15 @@
       border-radius: 4px;
     }
 
+    /* ツールバー非表示時に右上に浮かぶミニ操作バー */
     .floating-hud {
       position: fixed;
-      top: calc(env(safe-area-inset-top) + 12px);
+      top: calc(env(safe-area-inset-top) + 10px);
       right: calc(env(safe-area-inset-right) + 14px);
       display: none;
       align-items: center;
       gap: 7px;
-      background: rgba(15, 23, 42, 0.86);
+      background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border: 1px solid rgba(56, 189, 248, 0.35);
@@ -600,53 +611,57 @@
 </head>
 <body>
   <div class="app-container" id="appContainer">
-    <header class="top-bar">
-      <nav class="nav-tabs">
-        <button class="nav-tab active" data-view="writeView">✍️ 新規メモ</button>
-        <button class="nav-tab" data-view="folderView">📁 フォルダ</button>
-        <button class="nav-tab" data-view="allView">🗂️ 全memo</button>
-      </nav>
+    <!-- 独立レイヤーの上部バー（表示/非表示を切り替えても下の用紙位置は1pxも動かない） -->
+    <div class="top-header-overlay">
+      <header class="top-bar">
+        <nav class="nav-tabs">
+          <button class="nav-tab active" data-view="writeView">✍️ 新規メモ</button>
+          <button class="nav-tab" data-view="folderView">📁 フォルダ</button>
+          <button class="nav-tab" data-view="allView">🗂️ 全memo</button>
+        </nav>
 
-      <div class="tool-group" id="writeTools">
-        <select id="writeFolderSelect" title="保存先フォルダ"></select>
-        <button id="penOnlyBtn" class="active" title="オン時はApple Pencilのみ描画">✒️ ペン専用</button>
-        <button class="color-dot active" data-color="#111827" style="background:#111827;" title="黒（本文）"></button>
-        <button class="color-dot" data-color="#2563eb" style="background:#2563eb;" title="青（注釈）"></button>
-        <button class="color-dot" data-color="#dc2626" style="background:#dc2626;" title="赤（重要注釈）"></button>
+        <div class="tool-group" id="writeTools">
+          <select id="writeFolderSelect" title="保存先フォルダ"></select>
+          <button id="penOnlyBtn" class="active" title="オン時はApple Pencilのみ描画">✒️ ペン専用</button>
+          <button class="color-dot active" data-color="#111827" style="background:#111827;" title="黒（本文）"></button>
+          <button class="color-dot" data-color="#2563eb" style="background:#2563eb;" title="青（注釈）"></button>
+          <button class="color-dot" data-color="#dc2626" style="background:#dc2626;" title="赤（重要注釈）"></button>
 
-        <div class="width-group" title="ペンの太さ">
-          <button class="width-btn" data-width="4.5">細</button>
-          <button class="width-btn active" data-width="6.2">中</button>
-          <button class="width-btn" data-width="8.2">太</button>
+          <div class="width-group" title="ペンの太さ">
+            <button class="width-btn" data-width="4.5">細</button>
+            <button class="width-btn active" data-width="6.2">中</button>
+            <button class="width-btn" data-width="8.2">太</button>
+          </div>
+
+          <button id="eraserBtn" title="消しゴム">消しゴム</button>
+          <button id="undoBtn" title="1画戻す">↩</button>
+          <button id="clearBtn" class="danger" title="白紙に戻す">クリア</button>
+
+          <div class="stats-pill" title="1日の目標10枚に対する今日の作成数と全累計枚数">
+            <span>今日 <strong id="todayCount">0</strong>/10枚</span>
+            <span class="stats-divider">｜</span>
+            <span>累計 <strong id="totalCount">0</strong>枚</span>
+          </div>
+
+          <div class="timer-box">
+            <span id="timerDisplay" class="timer-text">60.0</span>
+            <button id="timerToggleBtn" title="開始/一時停止">▶</button>
+            <button id="timerResetBtn" title="リセット">↺</button>
+          </div>
+
+          <button id="autoHideBtn" class="active" title="書き始めるとツールバーを自動で隠します">👁️ 筆記中隠す</button>
+          <button id="fullscreenBtn" title="ワンタップでツールバーを隠して広く表示">⛶ 全画面</button>
+
+          <button id="saveNextBtn" class="primary">完了・次へ ➔</button>
         </div>
+      </header>
 
-        <button id="eraserBtn" title="消しゴム">消しゴム</button>
-        <button id="undoBtn" title="1画戻す">↩</button>
-        <button id="clearBtn" class="danger" title="白紙に戻す">クリア</button>
-
-        <div class="stats-pill" title="1日の目標10枚に対する今日の作成数と全累計枚数">
-          <span>今日 <strong id="todayCount">0</strong>/10枚</span>
-          <span class="stats-divider">｜</span>
-          <span>累計 <strong id="totalCount">0</strong>枚</span>
-        </div>
-
-        <div class="timer-box">
-          <span id="timerDisplay" class="timer-text">60.0</span>
-          <button id="timerToggleBtn" title="開始/一時停止">▶</button>
-          <button id="timerResetBtn" title="リセット">↺</button>
-        </div>
-
-        <button id="autoHideBtn" class="active" title="書き始めるとツールバーを自動で隠します">👁️ 筆記中隠す</button>
-        <button id="fullscreenBtn" title="ワンタップでフルスクリーン表示">⛶ 全画面</button>
-
-        <button id="saveNextBtn" class="primary">完了・次へ ➔</button>
+      <div class="progress-track" id="progressTrack">
+        <div id="progressBar" class="progress-bar"></div>
       </div>
-    </header>
-
-    <div class="progress-track" id="progressTrack">
-      <div id="progressBar" class="progress-bar"></div>
     </div>
 
+    <!-- ツールバー非表示時に右上に浮かぶミニ操作バー -->
     <div class="floating-hud" id="floatingHud">
       <span id="hudTimerDisplay" class="hud-timer">60.0</span>
       <button class="hud-dot active" data-color="#111827" style="background:#111827;" title="黒"></button>
@@ -661,7 +676,7 @@
       <main class="canvas-stage" id="canvasStage">
         <div class="paper-wrapper" id="paperWrapper">
           <canvas id="memoCanvas" width="2400" height="1697"></canvas>
-          <div class="status-badge" id="statusBadge">書き始めると自動で60秒タイマー開始＆ツールバーが隠れます</div>
+          <div class="status-badge" id="statusBadge">書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）</div>
         </div>
       </main>
     </section>
@@ -730,9 +745,9 @@
     let activePointerId = null;
 
     // 60秒経過時の「書き終わり待機」＆「切替直後の誤描画ロック」制御
-    let pendingAutoSave = false;     // タイムアップ時にまだペンが触れていたらtrueにしてペン離しを待つ
-    let autoSaveDelayTimer = null;   // ペンを離してから一拍(450ms)おいて保存するタイマー
-    let inputLockedUntil = 0;        // 新規シート切替直後(600ms)の誤入力ブロック期限
+    let pendingAutoSave = false;
+    let autoSaveDelayTimer = null;
+    let inputLockedUntil = 0;
 
     // 手ブレ補正
     let smoothX = 0;
@@ -765,15 +780,19 @@
     let sortNewestFirst = true;
 
     // ==========================================
-    // 2. フルスクリーン（ツールバー隠蔽）制御
+    // 2. ツールバー表示切替（レイアウトシフト0px・ブラウザ全画面強制なし）
     // ==========================================
-    function setZenMode(enabled) {
+    function setZenMode(enabled, useBrowserFullscreen = false) {
       isZenMode = enabled;
       appContainer.classList.toggle('zen-mode', enabled);
-      if (enabled && document.documentElement.requestFullscreen && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else if (!enabled && document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
+
+      // 書き始め自動隠蔽時はブラウザ全画面APIを呼ばず、用紙座標を1pxも動かさない
+      if (useBrowserFullscreen) {
+        if (enabled && document.documentElement.requestFullscreen && !document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else if (!enabled && document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
       }
     }
 
@@ -1010,18 +1029,16 @@
       if (penOnly && e.pointerType !== 'pen') return;
       if (e.button !== 0 && e.pointerType === 'mouse') return;
 
-      // 新規シート切替直後の誤入力ブロック期間中（0.6秒間）は無視する
       if (performance.now() < inputLockedUntil) return;
-
-      // ペンを離したあとの保存待機カウントダウン中（0.45秒間）に次の画を書き始めた場合も一旦ブロック
       if (pendingAutoSave) return;
 
       e.preventDefault();
       canvas.setPointerCapture(e.pointerId);
       activePointerId = e.pointerId;
 
+      // ツールバーを隠す（用紙位置は完全固定されているため一切ズレない）
       if (autoHideOnWrite && !isZenMode) {
-        setZenMode(true);
+        setZenMode(true, false);
       }
 
       if (!timerStartedForSheet && editingMemoId === null) {
@@ -1134,7 +1151,6 @@
       if (!isDrawing) return;
       forceFinishActiveStroke();
 
-      // 60秒経過してペン離しを待っていた場合、一拍（0.45秒）おいてから自動保存＆次のシートへ切り替え
       if (pendingAutoSave) {
         clearTimeout(autoSaveDelayTimer);
         autoSaveDelayTimer = setTimeout(() => {
@@ -1152,7 +1168,7 @@
     document.addEventListener('gesturestart', (e) => e.preventDefault());
 
     // ==========================================
-    // 6. 1分タイマー制御（筆記中タイムアップ時はペン離し待機）
+    // 6. 1分タイマー制御
     // ==========================================
     const timerDisplay = document.getElementById('timerDisplay');
     const hudTimerDisplay = document.getElementById('hudTimerDisplay');
@@ -1193,13 +1209,11 @@
         playSoftChime();
 
         if (isDrawing) {
-          // まだペン先が画面に触れているので強制切替せず、ペンを離すまで待つ
           pendingAutoSave = true;
           paperWrapper.classList.add('finishing-stroke');
           document.getElementById('statusBadge').textContent = '60秒経過：現在の文字を書き終えてペンを離すと自動で次へ進みます';
           updateTimerUI();
         } else {
-          // ペンが離れていれば一拍（0.45秒）おいてから切り替え
           pendingAutoSave = true;
           paperWrapper.classList.add('finishing-stroke');
           updateTimerUI();
@@ -1244,9 +1258,7 @@
       saveNextBtn.textContent = '完了・次へ ➔';
       saveNextBtn.className = 'primary';
       document.getElementById('hudSaveNextBtn').textContent = '完了 ➔';
-      document.getElementById('statusBadge').textContent = autoHideOnWrite
-        ? '書き始めると自動で60秒タイマー開始＆ツールバーが隠れます'
-        : '書き始めると自動で60秒タイマーが開始します（最大6行＋注釈余白）';
+      document.getElementById('statusBadge').textContent = '書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）';
       updateTimerUI();
     }
 
@@ -1292,14 +1304,11 @@
       pendingAutoSave = false;
       paperWrapper.classList.remove('finishing-stroke');
 
-      // 描画中だったストロークを完全に確定・終了させてから保存処理へ移る
       forceFinishActiveStroke();
-
-      // 切替直後の0.6秒間は誤って次の白紙に線が引かれないようロック
       inputLockedUntil = performance.now() + 600;
 
       if (autoHideOnWrite && isZenMode) {
-        setZenMode(false);
+        setZenMode(false, false);
       }
 
       if (strokes.length === 0 && editingMemoId === null) {
@@ -1340,7 +1349,7 @@
     }
 
     function openMemoForEdit(memo) {
-      setZenMode(false);
+      setZenMode(false, false);
       switchView('writeView');
       resetToNewSheetState();
 
@@ -1521,7 +1530,7 @@
 
     function switchView(viewId) {
       if (viewId !== 'writeView') {
-        setZenMode(false);
+        setZenMode(false, false);
       }
       document.querySelectorAll('.nav-tab').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === viewId);
@@ -1617,11 +1626,11 @@
     });
 
     document.getElementById('fullscreenBtn').addEventListener('click', () => {
-      setZenMode(true);
+      setZenMode(true, true);
     });
 
     document.getElementById('exitZenBtn').addEventListener('click', () => {
-      setZenMode(false);
+      setZenMode(false, true);
     });
 
     document.getElementById('writeFolderSelect').addEventListener('change', (e) => {
