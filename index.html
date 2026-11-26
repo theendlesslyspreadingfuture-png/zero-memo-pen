@@ -171,6 +171,7 @@
       padding-bottom: env(safe-area-inset-bottom);
       padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
+      position: relative;
     }
 
     .top-bar {
@@ -183,6 +184,10 @@
       border-bottom: 1px solid var(--border-dark);
       flex-shrink: 0;
       flex-wrap: wrap;
+    }
+
+    .app-container.zen-mode .top-bar {
+      display: none;
     }
 
     .nav-tabs {
@@ -270,7 +275,6 @@
       transform: scale(1.1);
     }
 
-    /* ペンの太さ切替 */
     .width-group {
       display: inline-flex;
       background: #0b0e13;
@@ -292,7 +296,6 @@
       color: #fff;
     }
 
-    /* 今日・累計カウンター */
     .stats-pill {
       display: inline-flex;
       align-items: center;
@@ -317,7 +320,6 @@
       color: var(--border-dark);
     }
 
-    /* タイマー */
     .timer-box {
       display: flex;
       align-items: center;
@@ -337,11 +339,11 @@
     }
     .timer-text.urgent {
       color: var(--danger);
-      animation: pulse 0.8s infinite;
+      animation: pulse 0.6s infinite;
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+      50% { opacity: 0.35; }
     }
 
     .progress-track {
@@ -371,7 +373,6 @@
       display: flex;
     }
 
-    /* 手書きステージ */
     .canvas-stage {
       flex: 1;
       display: flex;
@@ -381,6 +382,9 @@
       overflow: hidden;
       touch-action: none;
       position: relative;
+    }
+    .app-container.zen-mode .canvas-stage {
+      padding: 6px;
     }
 
     .paper-wrapper {
@@ -394,6 +398,10 @@
       height: 100%;
       width: auto;
       touch-action: none;
+      transition: box-shadow 0.2s ease;
+    }
+    .paper-wrapper.finishing-stroke {
+      box-shadow: 0 0 0 4px var(--danger), 0 12px 36px rgba(0, 0, 0, 0.6);
     }
 
     @media (orientation: portrait) {
@@ -419,12 +427,59 @@
       font-size: 11px;
       color: #64748b;
       pointer-events: none;
-      background: rgba(255, 255, 255, 0.88);
+      background: rgba(255, 255, 255, 0.9);
       padding: 2px 8px;
       border-radius: 4px;
     }
 
-    /* フォルダ＆全memo 管理画面 */
+    .floating-hud {
+      position: fixed;
+      top: calc(env(safe-area-inset-top) + 12px);
+      right: calc(env(safe-area-inset-right) + 14px);
+      display: none;
+      align-items: center;
+      gap: 7px;
+      background: rgba(15, 23, 42, 0.86);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 5px 10px;
+      border-radius: 999px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      z-index: 800;
+    }
+    .app-container.zen-mode .floating-hud {
+      display: flex;
+    }
+    .hud-timer {
+      font-variant-numeric: tabular-nums;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent);
+      min-width: 42px;
+      text-align: center;
+    }
+    .hud-timer.urgent {
+      color: var(--danger);
+      animation: pulse 0.6s infinite;
+    }
+    .hud-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.25);
+      padding: 0;
+    }
+    .hud-dot.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .hud-btn {
+      padding: 4px 9px;
+      font-size: 12px;
+      border-radius: 999px;
+    }
+
     .manager-header {
       display: flex;
       align-items: center;
@@ -544,8 +599,7 @@
   </style>
 </head>
 <body>
-  <div class="app-container">
-    <!-- 上部共通バー -->
+  <div class="app-container" id="appContainer">
     <header class="top-bar">
       <nav class="nav-tabs">
         <button class="nav-tab active" data-view="writeView">✍️ 新規メモ</button>
@@ -553,7 +607,6 @@
         <button class="nav-tab" data-view="allView">🗂️ 全memo</button>
       </nav>
 
-      <!-- 新規メモ画面専用ツール群 -->
       <div class="tool-group" id="writeTools">
         <select id="writeFolderSelect" title="保存先フォルダ"></select>
         <button id="penOnlyBtn" class="active" title="オン時はApple Pencilのみ描画">✒️ ペン専用</button>
@@ -561,7 +614,6 @@
         <button class="color-dot" data-color="#2563eb" style="background:#2563eb;" title="青（注釈）"></button>
         <button class="color-dot" data-color="#dc2626" style="background:#dc2626;" title="赤（重要注釈）"></button>
 
-        <!-- ペンの太さ切替（細・中・太） -->
         <div class="width-group" title="ペンの太さ">
           <button class="width-btn" data-width="4.5">細</button>
           <button class="width-btn active" data-width="6.2">中</button>
@@ -572,40 +624,48 @@
         <button id="undoBtn" title="1画戻す">↩</button>
         <button id="clearBtn" class="danger" title="白紙に戻す">クリア</button>
 
-        <!-- 今日の達成枚数（目標10枚）＆累計総数 -->
         <div class="stats-pill" title="1日の目標10枚に対する今日の作成数と全累計枚数">
           <span>今日 <strong id="todayCount">0</strong>/10枚</span>
           <span class="stats-divider">｜</span>
           <span>累計 <strong id="totalCount">0</strong>枚</span>
         </div>
 
-        <!-- 60秒タイマー -->
         <div class="timer-box">
           <span id="timerDisplay" class="timer-text">60.0</span>
           <button id="timerToggleBtn" title="開始/一時停止">▶</button>
           <button id="timerResetBtn" title="リセット">↺</button>
         </div>
 
+        <button id="autoHideBtn" class="active" title="書き始めるとツールバーを自動で隠します">👁️ 筆記中隠す</button>
+        <button id="fullscreenBtn" title="ワンタップでフルスクリーン表示">⛶ 全画面</button>
+
         <button id="saveNextBtn" class="primary">完了・次へ ➔</button>
       </div>
     </header>
 
-    <!-- 残り時間バー -->
     <div class="progress-track" id="progressTrack">
       <div id="progressBar" class="progress-bar"></div>
     </div>
 
-    <!-- 画面1：新規メモ -->
+    <div class="floating-hud" id="floatingHud">
+      <span id="hudTimerDisplay" class="hud-timer">60.0</span>
+      <button class="hud-dot active" data-color="#111827" style="background:#111827;" title="黒"></button>
+      <button class="hud-dot" data-color="#2563eb" style="background:#2563eb;" title="青"></button>
+      <button class="hud-dot" data-color="#dc2626" style="background:#dc2626;" title="赤"></button>
+      <button class="hud-btn" id="hudUndoBtn" title="1画戻す">↩</button>
+      <button class="hud-btn primary" id="hudSaveNextBtn">完了 ➔</button>
+      <button class="hud-btn" id="exitZenBtn" title="ツールバーを再表示">ツール表示 ▾</button>
+    </div>
+
     <section class="view-section active" id="writeView">
       <main class="canvas-stage" id="canvasStage">
-        <div class="paper-wrapper">
+        <div class="paper-wrapper" id="paperWrapper">
           <canvas id="memoCanvas" width="2400" height="1697"></canvas>
-          <div class="status-badge" id="statusBadge">書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）</div>
+          <div class="status-badge" id="statusBadge">書き始めると自動で60秒タイマー開始＆ツールバーが隠れます</div>
         </div>
       </main>
     </section>
 
-    <!-- 画面2：フォルダ管理 -->
     <section class="view-section" id="folderView">
       <div class="manager-header">
         <div class="tool-group">
@@ -620,7 +680,6 @@
       <div class="memo-grid" id="folderMemoGrid"></div>
     </section>
 
-    <!-- 画面3：全memo -->
     <section class="view-section" id="allView">
       <div class="manager-header">
         <div class="tool-group">
@@ -642,17 +701,17 @@
 
   <script>
     // ==========================================
-    // 1. 高精細キャンバス設定＆手ブレ補正パラメータ
+    // 1. 高精細キャンバス設定＆手ブレ補正・切替保護パラメータ
     // ==========================================
-    // 2400x1697（A4横比率・高解像度）＋標準アンチエイリアス有効化で文字のギザギザを解消
     const CANVAS_W = 2400;
     const CANVAS_H = 1697;
     const LIMIT_SECONDS = 60.0;
     const DAILY_GOAL = 10;
     const UNCLASSIFIED = '未分類';
 
+    const appContainer = document.getElementById('appContainer');
+    const paperWrapper = document.getElementById('paperWrapper');
     const canvas = document.getElementById('memoCanvas');
-    // desynchronized を外し、iPad Safariのハードウェアアンチエイリアスを有効化
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -660,19 +719,28 @@
     let penOnly = true;
     let isEraser = false;
     let currentColor = '#111827';
-    let baseLineWidth = 6.2; // 標準（中）：日本語の画数が潰れず読みやすい太さ
+    let baseLineWidth = 6.2;
+
+    let autoHideOnWrite = JSON.parse(localStorage.getItem('zm_auto_hide_toolbar') ?? 'true');
+    let isZenMode = false;
 
     let strokes = [];
     let currentStroke = null;
     let isDrawing = false;
+    let activePointerId = null;
 
-    // 手ブレ補正用フィルタ状態
+    // 60秒経過時の「書き終わり待機」＆「切替直後の誤描画ロック」制御
+    let pendingAutoSave = false;     // タイムアップ時にまだペンが触れていたらtrueにしてペン離しを待つ
+    let autoSaveDelayTimer = null;   // ペンを離してから一拍(450ms)おいて保存するタイマー
+    let inputLockedUntil = 0;        // 新規シート切替直後(600ms)の誤入力ブロック期限
+
+    // 手ブレ補正
     let smoothX = 0;
     let smoothY = 0;
     let smoothP = 0.5;
-    const POS_SMOOTHING = 0.52;      // 座標の滑らかさ（0.45〜0.6でハネ・トメを保ちつつ微振動を除去）
-    const PRESSURE_SMOOTHING = 0.35; // 筆圧の急変を抑えて線の太さを安定させる
-    const MIN_POINT_DIST = 2.2;      // 近すぎる点（2.2px未満）を間引いて角張りを防止
+    const POS_SMOOTHING = 0.52;
+    const PRESSURE_SMOOTHING = 0.35;
+    const MIN_POINT_DIST = 2.2;
 
     // 既存メモ編集状態
     let editingMemoId = null;
@@ -697,7 +765,35 @@
     let sortNewestFirst = true;
 
     // ==========================================
-    // 2. IndexedDB
+    // 2. フルスクリーン（ツールバー隠蔽）制御
+    // ==========================================
+    function setZenMode(enabled) {
+      isZenMode = enabled;
+      appContainer.classList.toggle('zen-mode', enabled);
+      if (enabled && document.documentElement.requestFullscreen && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else if (!enabled && document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    function updateAutoHideBtnUI() {
+      const btn = document.getElementById('autoHideBtn');
+      btn.classList.toggle('active', autoHideOnWrite);
+      btn.textContent = autoHideOnWrite ? '👁️ 筆記中隠す' : '👁️ ツール固定';
+    }
+
+    function syncColorUI(color) {
+      currentColor = color;
+      isEraser = false;
+      document.getElementById('eraserBtn').classList.remove('active');
+      document.querySelectorAll('.color-dot, .hud-dot').forEach(b => {
+        b.classList.toggle('active', b.dataset.color === color);
+      });
+    }
+
+    // ==========================================
+    // 3. IndexedDB
     // ==========================================
     const DB_NAME = 'ZeroMemoPen6LinesDB';
     const DB_VERSION = 1;
@@ -751,7 +847,7 @@
     }
 
     // ==========================================
-    // 3. A4テンプレート＆滑らか曲線レンダリング
+    // 4. A4テンプレート＆滑らか曲線レンダリング
     // ==========================================
     function getTodayString() {
       const now = new Date();
@@ -776,7 +872,6 @@
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-      // タイトル下線（2400x1697スケールに合わせて調整）
       ctx.strokeStyle = '#1e293b';
       ctx.lineWidth = 5;
       ctx.beginPath();
@@ -784,14 +879,12 @@
       ctx.lineTo(1460, 210);
       ctx.stroke();
 
-      // 日付（自動表示）
       const displayDate = editingMemoDateStr || getTodayString();
       ctx.fillStyle = '#334155';
       ctx.font = '600 48px -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif';
       ctx.textAlign = 'right';
       ctx.fillText(displayDate, CANVAS_W - 120, 198);
 
-      // 6行＋各行下の注釈スペース
       const rowYs = [354, 576, 798, 1020, 1242, 1464];
       rowYs.forEach((y) => {
         ctx.fillStyle = '#64748b';
@@ -820,7 +913,6 @@
       ctx.restore();
     }
 
-    // 過去データ（2000x1414保存分）も新解像度（2400x1697）に自動スケーリングして互換維持
     function scalePoint(pt, scaleFactor) {
       if (scaleFactor === 1) return pt;
       return { x: pt.x * scaleFactor, y: pt.y * scaleFactor, p: pt.p };
@@ -866,7 +958,6 @@
         return;
       }
 
-      // 滑らかな二次ベジェスプライン描画
       for (let i = 1; i < pts.length - 1; i++) {
         const p0 = pts[i - 1];
         const p1 = pts[i];
@@ -884,7 +975,6 @@
         ctx.stroke();
       }
 
-      // 最終セグメントの先端を滑らかに繋ぐ
       const lastPrev = pts[pts.length - 2];
       const lastCurr = pts[pts.length - 1];
       const tailStartX = (lastPrev.x + lastCurr.x) / 2;
@@ -898,7 +988,6 @@
       ctx.restore();
     }
 
-    // ゲルインクペン風の安定した太さ計算（極端な細り・太りを防ぎ文字を読みやすくする）
     function getWidthFromPressure(base, pressure, eraser) {
       if (eraser) return 44;
       const p = (pressure && pressure > 0) ? pressure : 0.5;
@@ -906,7 +995,7 @@
     }
 
     // ==========================================
-    // 4. Apple Pencil 描画制御（手ブレ補正＋間引きフィルタ）
+    // 5. Apple Pencil 描画制御（書き終わり待機＆切替直後誤入力ブロック）
     // ==========================================
     function getRawCanvasCoords(e) {
       const rect = canvas.getBoundingClientRect();
@@ -921,8 +1010,19 @@
       if (penOnly && e.pointerType !== 'pen') return;
       if (e.button !== 0 && e.pointerType === 'mouse') return;
 
+      // 新規シート切替直後の誤入力ブロック期間中（0.6秒間）は無視する
+      if (performance.now() < inputLockedUntil) return;
+
+      // ペンを離したあとの保存待機カウントダウン中（0.45秒間）に次の画を書き始めた場合も一旦ブロック
+      if (pendingAutoSave) return;
+
       e.preventDefault();
       canvas.setPointerCapture(e.pointerId);
+      activePointerId = e.pointerId;
+
+      if (autoHideOnWrite && !isZenMode) {
+        setZenMode(true);
+      }
 
       if (!timerStartedForSheet && editingMemoId === null) {
         timerStartedForSheet = true;
@@ -966,7 +1066,6 @@
       for (const ev of events) {
         const raw = getRawCanvasCoords(ev);
 
-        // 指数移動平均によるリアルタイム手ブレ補正
         smoothX = smoothX + (raw.x - smoothX) * POS_SMOOTHING;
         smoothY = smoothY + (raw.y - smoothY) * POS_SMOOTHING;
         const targetP = (raw.p && raw.p > 0) ? raw.p : 0.5;
@@ -975,7 +1074,6 @@
         const lastPt = pts[pts.length - 1];
         const dist = Math.hypot(smoothX - lastPt.x, smoothY - lastPt.y);
 
-        // 近すぎるサンプル点を間引いて角張りを防ぐ
         if (dist < MIN_POINT_DIST) continue;
 
         const newPt = { x: smoothX, y: smoothY, p: smoothP };
@@ -1005,11 +1103,10 @@
       }
     });
 
-    function endStroke(e) {
+    function forceFinishActiveStroke() {
       if (!isDrawing) return;
       isDrawing = false;
 
-      // 最後のペン先位置まで綺麗に補完描画
       if (currentStroke && currentStroke.points.length >= 2) {
         const pts = currentStroke.points;
         const pPrev = pts[pts.length - 2];
@@ -1027,8 +1124,22 @@
       }
 
       currentStroke = null;
-      if (e && e.pointerId !== undefined && canvas.hasPointerCapture(e.pointerId)) {
-        canvas.releasePointerCapture(e.pointerId);
+      if (activePointerId !== null && canvas.hasPointerCapture(activePointerId)) {
+        try { canvas.releasePointerCapture(activePointerId); } catch (_) {}
+      }
+      activePointerId = null;
+    }
+
+    function endStroke(e) {
+      if (!isDrawing) return;
+      forceFinishActiveStroke();
+
+      // 60秒経過してペン離しを待っていた場合、一拍（0.45秒）おいてから自動保存＆次のシートへ切り替え
+      if (pendingAutoSave) {
+        clearTimeout(autoSaveDelayTimer);
+        autoSaveDelayTimer = setTimeout(() => {
+          completeAndNextSheet(true);
+        }, 450);
       }
     }
 
@@ -1041,23 +1152,29 @@
     document.addEventListener('gesturestart', (e) => e.preventDefault());
 
     // ==========================================
-    // 5. 1分タイマー制御
+    // 6. 1分タイマー制御（筆記中タイムアップ時はペン離し待機）
     // ==========================================
     const timerDisplay = document.getElementById('timerDisplay');
+    const hudTimerDisplay = document.getElementById('hudTimerDisplay');
     const progressBar = document.getElementById('progressBar');
     const timerToggleBtn = document.getElementById('timerToggleBtn');
     const saveNextBtn = document.getElementById('saveNextBtn');
 
     function updateTimerUI() {
-      timerDisplay.textContent = Math.max(0, remainingTime).toFixed(1);
+      const valStr = Math.max(0, remainingTime).toFixed(1);
+      timerDisplay.textContent = valStr;
+      hudTimerDisplay.textContent = valStr;
+
       const ratio = Math.max(0, remainingTime / LIMIT_SECONDS);
       progressBar.style.transform = `scaleX(${ratio})`;
 
-      if (remainingTime <= 10 && timerRunning) {
+      if ((remainingTime <= 10 && timerRunning) || pendingAutoSave) {
         timerDisplay.classList.add('urgent');
+        hudTimerDisplay.classList.add('urgent');
         progressBar.classList.add('urgent');
       } else {
         timerDisplay.classList.remove('urgent');
+        hudTimerDisplay.classList.remove('urgent');
         progressBar.classList.remove('urgent');
       }
       timerToggleBtn.textContent = timerRunning ? '⏸' : '▶';
@@ -1073,9 +1190,24 @@
       if (remainingTime <= 0) {
         remainingTime = 0;
         timerRunning = false;
-        updateTimerUI();
         playSoftChime();
-        completeAndNextSheet(true);
+
+        if (isDrawing) {
+          // まだペン先が画面に触れているので強制切替せず、ペンを離すまで待つ
+          pendingAutoSave = true;
+          paperWrapper.classList.add('finishing-stroke');
+          document.getElementById('statusBadge').textContent = '60秒経過：現在の文字を書き終えてペンを離すと自動で次へ進みます';
+          updateTimerUI();
+        } else {
+          // ペンが離れていれば一拍（0.45秒）おいてから切り替え
+          pendingAutoSave = true;
+          paperWrapper.classList.add('finishing-stroke');
+          updateTimerUI();
+          clearTimeout(autoSaveDelayTimer);
+          autoSaveDelayTimer = setTimeout(() => {
+            completeAndNextSheet(true);
+          }, 450);
+        }
         return;
       }
       updateTimerUI();
@@ -1098,6 +1230,11 @@
 
     function resetToNewSheetState() {
       pauseTimer();
+      clearTimeout(autoSaveDelayTimer);
+      pendingAutoSave = false;
+      paperWrapper.classList.remove('finishing-stroke');
+      forceFinishActiveStroke();
+
       editingMemoId = null;
       editingMemoDateStr = null;
       editingMemoCreatedAt = null;
@@ -1106,7 +1243,10 @@
       timerStartedForSheet = false;
       saveNextBtn.textContent = '完了・次へ ➔';
       saveNextBtn.className = 'primary';
-      document.getElementById('statusBadge').textContent = '書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）';
+      document.getElementById('hudSaveNextBtn').textContent = '完了 ➔';
+      document.getElementById('statusBadge').textContent = autoHideOnWrite
+        ? '書き始めると自動で60秒タイマー開始＆ツールバーが隠れます'
+        : '書き始めると自動で60秒タイマーが開始します（最大6行＋注釈余白）';
       updateTimerUI();
     }
 
@@ -1127,7 +1267,7 @@
     }
 
     // ==========================================
-    // 6. 保存・新規シート切替・追記訂正・統計更新・PDF出力
+    // 7. 保存・新規シート切替・追記訂正・統計更新・PDF出力
     // ==========================================
     async function updateStatsDisplay() {
       const all = await getAllMemos();
@@ -1148,6 +1288,19 @@
 
     async function completeAndNextSheet(isAuto = false) {
       pauseTimer();
+      clearTimeout(autoSaveDelayTimer);
+      pendingAutoSave = false;
+      paperWrapper.classList.remove('finishing-stroke');
+
+      // 描画中だったストロークを完全に確定・終了させてから保存処理へ移る
+      forceFinishActiveStroke();
+
+      // 切替直後の0.6秒間は誤って次の白紙に線が引かれないようロック
+      inputLockedUntil = performance.now() + 600;
+
+      if (autoHideOnWrite && isZenMode) {
+        setZenMode(false);
+      }
 
       if (strokes.length === 0 && editingMemoId === null) {
         resetToNewSheetState();
@@ -1182,13 +1335,14 @@
       if (wasEditing) {
         showToast(`追記・訂正を上書き保存しました（${targetFolder}）`);
       } else {
-        showToast(isAuto ? `60秒経過：「${targetFolder}」に自動保存しました` : `「${targetFolder}」に保存しました`);
+        showToast(isAuto ? `保存完了：「${targetFolder}」へ格納・次のシートを用意しました` : `「${targetFolder}」に保存しました`);
       }
     }
 
     function openMemoForEdit(memo) {
+      setZenMode(false);
       switchView('writeView');
-      pauseTimer();
+      resetToNewSheetState();
 
       editingMemoId = memo.id;
       editingMemoDateStr = memo.dateStr;
@@ -1201,7 +1355,8 @@
 
       saveNextBtn.textContent = '追記・訂正を保存 ✔';
       saveNextBtn.className = 'warning';
-      document.getElementById('statusBadge').textContent = '【追記・訂正モード】青・赤ペンで下の余白に注釈追加や消しゴム修正ができます（タイマー停止中）';
+      document.getElementById('hudSaveNextBtn').textContent = '保存 ✔';
+      document.getElementById('statusBadge').textContent = '【追記・訂正モード】青・赤ペンで下の余白に注釈追加や消しゴム修正ができます';
 
       renderAllStrokes();
       showToast('メモを読み込みました。注釈の追記や訂正ができます');
@@ -1365,6 +1520,9 @@
     }
 
     function switchView(viewId) {
+      if (viewId !== 'writeView') {
+        setZenMode(false);
+      }
       document.querySelectorAll('.nav-tab').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === viewId);
       });
@@ -1389,7 +1547,7 @@
     }
 
     // ==========================================
-    // 7. イベント配線・起動処理
+    // 8. イベント配線・起動処理
     // ==========================================
     document.querySelectorAll('.nav-tab').forEach(tab => {
       tab.addEventListener('click', () => switchView(tab.dataset.view));
@@ -1402,14 +1560,8 @@
       showToast(penOnly ? 'Apple Pencil専用モード（手のひら誤タッチ防止ON）' : '指・マウス描画も有効にしました');
     });
 
-    document.querySelectorAll('.color-dot').forEach(btn => {
-      btn.addEventListener('click', () => {
-        isEraser = false;
-        document.getElementById('eraserBtn').classList.remove('active');
-        document.querySelectorAll('.color-dot').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentColor = btn.dataset.color;
-      });
+    document.querySelectorAll('.color-dot, .hud-dot').forEach(btn => {
+      btn.addEventListener('click', () => syncColorUI(btn.dataset.color));
     });
 
     document.querySelectorAll('.width-btn').forEach(btn => {
@@ -1426,15 +1578,18 @@
       isEraser = !isEraser;
       e.currentTarget.classList.toggle('active', isEraser);
       if (isEraser) {
-        document.querySelectorAll('.color-dot').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.color-dot, .hud-dot').forEach(b => b.classList.remove('active'));
       }
     });
 
-    document.getElementById('undoBtn').addEventListener('click', () => {
+    function undoLastStroke() {
       if (strokes.length === 0) return;
       strokes.pop();
       renderAllStrokes();
-    });
+    }
+
+    document.getElementById('undoBtn').addEventListener('click', undoLastStroke);
+    document.getElementById('hudUndoBtn').addEventListener('click', undoLastStroke);
 
     document.getElementById('clearBtn').addEventListener('click', () => {
       strokes = [];
@@ -1447,8 +1602,27 @@
       else startTimer();
     });
 
-    document.getElementById('timerResetBtn').addEventListener('click', resetToNewSheetState);
+    document.getElementById('timerResetBtn').addEventListener('click', () => {
+      resetToNewSheetState();
+      renderAllStrokes();
+    });
     saveNextBtn.addEventListener('click', () => completeAndNextSheet(false));
+    document.getElementById('hudSaveNextBtn').addEventListener('click', () => completeAndNextSheet(false));
+
+    document.getElementById('autoHideBtn').addEventListener('click', () => {
+      autoHideOnWrite = !autoHideOnWrite;
+      localStorage.setItem('zm_auto_hide_toolbar', JSON.stringify(autoHideOnWrite));
+      updateAutoHideBtnUI();
+      showToast(autoHideOnWrite ? '筆記開始時に自動でツールバーを隠します' : 'ツールバーを常に表示します');
+    });
+
+    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+      setZenMode(true);
+    });
+
+    document.getElementById('exitZenBtn').addEventListener('click', () => {
+      setZenMode(false);
+    });
 
     document.getElementById('writeFolderSelect').addEventListener('change', (e) => {
       selectedWriteFolder = e.target.value;
@@ -1478,6 +1652,7 @@
 
     (async function boot() {
       await initDB();
+      updateAutoHideBtnUI();
       syncFolderSelectors();
       resetToNewSheetState();
       renderAllStrokes();
