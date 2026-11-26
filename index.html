@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#0d1015" />
   <title>0 second - 1 minute memo</title>
 
-  <!-- 「0 second」ホーム画面アイコン & PWA Manifest 動的生成（0を目立たせ、よく見ると∞とペンが含まれるデザインに変更） -->
+  <!-- 「0 second」ホーム画面アイコン & PWA Manifest 動的生成 -->
   <script>
     (function setupDigitalIconAndPWA() {
       const c = document.createElement('canvas');
@@ -48,9 +48,7 @@
       g.lineWidth = 14;
       g.lineCap = 'round';
       g.lineJoin = 'round';
-      // 左ループと右ループ
       g.beginPath();
-      // 中心(256, 256)から交差するように一筆書き
       g.moveTo(256, 256);
       g.bezierCurveTo(200, 180, 130, 180, 130, 256);
       g.bezierCurveTo(130, 332, 200, 332, 256, 256);
@@ -62,7 +60,7 @@
       // 4. 背後の細いスタイラスペン
       g.save();
       g.translate(256, 256);
-      g.rotate(Math.PI / 4.5); // 斜めの傾き
+      g.rotate(Math.PI / 4.5);
       const penGrad = g.createLinearGradient(-6, -160, 6, 160);
       penGrad.addColorStop(0, 'rgba(56, 189, 248, 0.6)');
       penGrad.addColorStop(1, 'rgba(14, 165, 233, 0.25)');
@@ -70,7 +68,6 @@
       g.beginPath();
       g.roundRect(-5, -150, 10, 260, 3);
       g.fill();
-      // ペンの先端
       g.fillStyle = 'rgba(224, 242, 254, 0.5)';
       g.beginPath();
       g.moveTo(-5, 110);
@@ -91,8 +88,6 @@
       g.strokeStyle = zeroGrad;
       g.lineWidth = 26;
       g.lineCap = 'round';
-      
-      // 縦長の楕円「0」
       g.beginPath();
       g.ellipse(256, 240, 82, 145, 0, 0, Math.PI * 2);
       g.stroke();
@@ -674,8 +669,8 @@
 
           <div class="width-group" title="ペンの太さ">
             <button class="width-btn" data-width="4.8">細</button>
-            <button class="width-btn active" data-width="6.5">中</button>
-            <button class="width-btn" data-width="8.5">太</button>
+            <button class="width-btn active" data-width="5.65">中</button>
+            <button class="width-btn" data-width="6.5">太</button>
           </div>
 
           <button id="eraserBtn" title="消しゴム">消しゴム</button>
@@ -771,7 +766,7 @@
     let penOnly = true;
     let isEraser = false;
     let currentColor = '#111827';
-    let baseLineWidth = 6.5;
+    let baseLineWidth = 5.65;
 
     let autoHideOnWrite = JSON.parse(localStorage.getItem('zm_auto_hide_toolbar') ?? 'true');
     let isZenMode = false;
