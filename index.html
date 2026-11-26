@@ -133,6 +133,7 @@
     :root {
       --bg-dark: #0d1015;
       --panel-dark: #161b22;
+      --subpanel-dark: #11161d;
       --card-dark: #1c222b;
       --border-dark: #2b3340;
       --text-main: #f1f5f9;
@@ -174,7 +175,7 @@
       position: relative;
     }
 
-    /* 上部ナビゲーション＆ツールバー（独立オーバーレイ配置：非表示時も用紙位置を一切動かさない） */
+    /* 独立オーバーレイヘッダー（非表示時も下の用紙座標は1pxも動かない） */
     .top-header-overlay {
       position: fixed;
       top: env(safe-area-inset-top);
@@ -190,15 +191,28 @@
       pointer-events: none;
     }
 
-    .top-bar {
+    /* 1段目：左に3タブ、右端に「筆記中隠す」「全画面」「完了・次へ」 */
+    .top-bar-primary {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 7px 14px;
+      padding: 6px 14px;
       background: var(--panel-dark);
       border-bottom: 1px solid var(--border-dark);
-      flex-wrap: wrap;
+      height: 46px;
+    }
+
+    /* 2段目：ペン設定・統計・タイマー（新規メモ時のみ表示） */
+    .top-bar-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 5px 14px;
+      background: var(--subpanel-dark);
+      border-bottom: 1px solid var(--border-dark);
+      height: 44px;
     }
 
     .nav-tabs {
@@ -215,7 +229,7 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 6px 13px;
+      padding: 5px 13px;
       border-radius: 7px;
       font-size: 13px;
       font-weight: 700;
@@ -230,7 +244,6 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      flex-wrap: wrap;
     }
 
     select, button {
@@ -238,13 +251,14 @@
       color: var(--text-main);
       border: 1px solid var(--border-dark);
       border-radius: 8px;
-      padding: 6px 10px;
+      padding: 5px 10px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 5px;
+      white-space: nowrap;
     }
 
     button:active {
@@ -297,7 +311,7 @@
     .width-btn {
       background: transparent;
       border: none;
-      padding: 4px 8px;
+      padding: 3px 8px;
       font-size: 12px;
       border-radius: 6px;
       color: var(--text-muted);
@@ -314,7 +328,7 @@
       background: #0b0e13;
       border: 1px solid var(--border-dark);
       border-radius: 8px;
-      padding: 5px 11px;
+      padding: 4px 11px;
       font-size: 12px;
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
@@ -336,15 +350,15 @@
       align-items: center;
       gap: 6px;
       background: #0b0e13;
-      padding: 3px 10px;
+      padding: 2px 10px;
       border-radius: 999px;
       border: 1px solid var(--border-dark);
     }
     .timer-text {
       font-variant-numeric: tabular-nums;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 800;
-      min-width: 46px;
+      min-width: 44px;
       text-align: center;
       color: var(--accent);
     }
@@ -357,41 +371,57 @@
       50% { opacity: 0.35; }
     }
 
+    /* 常時最上部に固定されたプログレスバー（ツールバー収納後も左から右へ進行） */
     .progress-track {
-      width: 100%;
-      height: 4px;
+      position: fixed;
+      top: env(safe-area-inset-top);
+      left: env(safe-area-inset-left);
+      right: env(safe-area-inset-right);
+      height: 5px;
+      background: rgba(30, 41, 59, 0.85);
+      z-index: 850;
+      transition: height 0.2s ease;
+    }
+    .app-container.zen-mode .progress-track {
+      height: 8px;
       background: #1e293b;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     }
     .progress-bar {
       height: 100%;
       width: 100%;
-      background: linear-gradient(90deg, #38bdf8, #2563eb);
+      background: linear-gradient(90deg, #0284c7, #38bdf8, #7dd3fc);
       transform-origin: left;
-      transition: transform 0.1s linear;
+      transform: scaleX(0);
+      transition: transform 0.08s linear, background 0.3s;
+      position: relative;
     }
     .progress-bar.urgent {
-      background: var(--danger);
+      background: linear-gradient(90deg, #dc2626, #ef4444, #fca5a5);
     }
 
-    /* 各ビューは常に同じ上端余白（56px）を保持し、ツールバー開閉で座標がズレないように固定 */
+    /* 各ビューの配置（ヘッダー高さを確保し、用紙のタイトル・日付を絶対に隠さない） */
     .view-section {
       display: none;
       flex: 1;
       overflow: hidden;
       flex-direction: column;
-      padding-top: 56px;
+      padding-top: 92px;
+    }
+    .view-section.compact-header {
+      padding-top: 48px;
     }
     .view-section.active {
       display: flex;
     }
 
-    /* 手書きステージ（zen-mode時もpaddingを変えず用紙座標を完全固定） */
+    /* 手書きステージ（ツールバー収納時も座標と余白を完全固定） */
     .canvas-stage {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 8px 12px 10px 12px;
+      padding: 6px 12px 10px 12px;
       overflow: hidden;
       touch-action: none;
       position: relative;
@@ -442,19 +472,17 @@
       border-radius: 4px;
     }
 
-    /* ツールバー非表示時に右上に浮かぶミニ操作バー */
+    /* ツールバー非表示時に上部ダーク領域（用紙の外側）に収まるミニ操作バー */
     .floating-hud {
       position: fixed;
-      top: calc(env(safe-area-inset-top) + 10px);
+      top: calc(env(safe-area-inset-top) + 14px);
       right: calc(env(safe-area-inset-right) + 14px);
       display: none;
       align-items: center;
       gap: 7px;
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      padding: 5px 10px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      padding: 5px 11px;
       border-radius: 999px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
       z-index: 800;
@@ -611,16 +639,31 @@
 </head>
 <body>
   <div class="app-container" id="appContainer">
-    <!-- 独立レイヤーの上部バー（表示/非表示を切り替えても下の用紙位置は1pxも動かない） -->
+    <!-- 最上部タイムバー（左から右へ進行：ツールバー収納時も常時表示） -->
+    <div class="progress-track" id="progressTrack">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+
+    <!-- 独立オーバーレイヘッダー -->
     <div class="top-header-overlay">
-      <header class="top-bar">
+      <!-- 1段目：左に3タブ ／ 右端に「筆記中隠す」「全画面」「完了・次へ」 -->
+      <header class="top-bar-primary">
         <nav class="nav-tabs">
           <button class="nav-tab active" data-view="writeView">✍️ 新規メモ</button>
           <button class="nav-tab" data-view="folderView">📁 フォルダ</button>
           <button class="nav-tab" data-view="allView">🗂️ 全memo</button>
         </nav>
 
-        <div class="tool-group" id="writeTools">
+        <div class="tool-group" id="primaryRightActions">
+          <button id="autoHideBtn" class="active" title="書き始めるとツールバーを自動で隠します">👁️ 筆記中隠す</button>
+          <button id="fullscreenBtn" title="ワンタップでツールバーを隠して広く表示">⛶ 全画面</button>
+          <button id="saveNextBtn" class="primary">完了・次へ ➔</button>
+        </div>
+      </header>
+
+      <!-- 2段目：新規メモ用ツール（フォルダ・ペン設定・統計・タイマー） -->
+      <div class="top-bar-secondary" id="writeTools">
+        <div class="tool-group">
           <select id="writeFolderSelect" title="保存先フォルダ"></select>
           <button id="penOnlyBtn" class="active" title="オン時はApple Pencilのみ描画">✒️ ペン専用</button>
           <button class="color-dot active" data-color="#111827" style="background:#111827;" title="黒（本文）"></button>
@@ -636,7 +679,9 @@
           <button id="eraserBtn" title="消しゴム">消しゴム</button>
           <button id="undoBtn" title="1画戻す">↩</button>
           <button id="clearBtn" class="danger" title="白紙に戻す">クリア</button>
+        </div>
 
+        <div class="tool-group">
           <div class="stats-pill" title="1日の目標10枚に対する今日の作成数と全累計枚数">
             <span>今日 <strong id="todayCount">0</strong>/10枚</span>
             <span class="stats-divider">｜</span>
@@ -648,27 +693,18 @@
             <button id="timerToggleBtn" title="開始/一時停止">▶</button>
             <button id="timerResetBtn" title="リセット">↺</button>
           </div>
-
-          <button id="autoHideBtn" class="active" title="書き始めるとツールバーを自動で隠します">👁️ 筆記中隠す</button>
-          <button id="fullscreenBtn" title="ワンタップでツールバーを隠して広く表示">⛶ 全画面</button>
-
-          <button id="saveNextBtn" class="primary">完了・次へ ➔</button>
         </div>
-      </header>
-
-      <div class="progress-track" id="progressTrack">
-        <div id="progressBar" class="progress-bar"></div>
       </div>
     </div>
 
-    <!-- ツールバー非表示時に右上に浮かぶミニ操作バー -->
+    <!-- ツールバー収納時に上部ダーク余白に収まるミニ操作バー（用紙のタイトル・日付には一切かからない） -->
     <div class="floating-hud" id="floatingHud">
       <span id="hudTimerDisplay" class="hud-timer">60.0</span>
       <button class="hud-dot active" data-color="#111827" style="background:#111827;" title="黒"></button>
       <button class="hud-dot" data-color="#2563eb" style="background:#2563eb;" title="青"></button>
       <button class="hud-dot" data-color="#dc2626" style="background:#dc2626;" title="赤"></button>
       <button class="hud-btn" id="hudUndoBtn" title="1画戻す">↩</button>
-      <button class="hud-btn primary" id="hudSaveNextBtn">完了 ➔</button>
+      <button class="hud-btn primary" id="hudSaveNextBtn">完了・次へ ➔</button>
       <button class="hud-btn" id="exitZenBtn" title="ツールバーを再表示">ツール表示 ▾</button>
     </div>
 
@@ -681,7 +717,7 @@
       </main>
     </section>
 
-    <section class="view-section" id="folderView">
+    <section class="view-section compact-header" id="folderView">
       <div class="manager-header">
         <div class="tool-group">
           <strong style="font-size:15px;">📁 フォルダ別整理・PDF出力</strong>
@@ -695,7 +731,7 @@
       <div class="memo-grid" id="folderMemoGrid"></div>
     </section>
 
-    <section class="view-section" id="allView">
+    <section class="view-section compact-header" id="allView">
       <div class="manager-header">
         <div class="tool-group">
           <strong style="font-size:15px;">🗂️ 全memo一覧（分類・注釈追記・訂正）</strong>
@@ -716,7 +752,7 @@
 
   <script>
     // ==========================================
-    // 1. 高精細キャンバス設定＆手ブレ補正・切替保護パラメータ
+    // 1. 高精細キャンバス設定＆強化型2段階手ブレ補正パラメータ
     // ==========================================
     const CANVAS_W = 2400;
     const CANVAS_H = 1697;
@@ -749,13 +785,14 @@
     let autoSaveDelayTimer = null;
     let inputLockedUntil = 0;
 
-    // 手ブレ補正
-    let smoothX = 0;
-    let smoothY = 0;
+    // 強化型2段階手ブレ補正（1段目で高周波の震えを吸収し、2段目で滑らかな曲線へ整形）
+    let s1X = 0, s1Y = 0;
+    let smoothX = 0, smoothY = 0;
     let smoothP = 0.5;
-    const POS_SMOOTHING = 0.52;
-    const PRESSURE_SMOOTHING = 0.35;
-    const MIN_POINT_DIST = 2.2;
+    const STAGE1_SMOOTHING = 0.36;   // 1段目フィルタ（数値を下げるほど手ブレ吸収が強くなる）
+    const STAGE2_SMOOTHING = 0.44;   // 2段目フィルタ（2重平滑化で丸みのある美しい線にする）
+    const PRESSURE_SMOOTHING = 0.25; // 筆圧の急変をさらに抑えて文字の太さを均一化
+    const MIN_POINT_DIST = 3.2;      // 3.2px未満の微細な震え点を間引き
 
     // 既存メモ編集状態
     let editingMemoId = null;
@@ -780,13 +817,12 @@
     let sortNewestFirst = true;
 
     // ==========================================
-    // 2. ツールバー表示切替（レイアウトシフト0px・ブラウザ全画面強制なし）
+    // 2. ツールバー表示切替（レイアウトシフト0px）
     // ==========================================
     function setZenMode(enabled, useBrowserFullscreen = false) {
       isZenMode = enabled;
       appContainer.classList.toggle('zen-mode', enabled);
 
-      // 書き始め自動隠蔽時はブラウザ全画面APIを呼ばず、用紙座標を1pxも動かさない
       if (useBrowserFullscreen) {
         if (enabled && document.documentElement.requestFullscreen && !document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(() => {});
@@ -1010,11 +1046,11 @@
     function getWidthFromPressure(base, pressure, eraser) {
       if (eraser) return 44;
       const p = (pressure && pressure > 0) ? pressure : 0.5;
-      return base * (0.76 + p * 0.48);
+      return base * (0.80 + p * 0.40);
     }
 
     // ==========================================
-    // 5. Apple Pencil 描画制御（書き終わり待機＆切替直後誤入力ブロック）
+    // 5. Apple Pencil 描画制御（2段階手ブレ補正＆切替保護）
     // ==========================================
     function getRawCanvasCoords(e) {
       const rect = canvas.getBoundingClientRect();
@@ -1036,7 +1072,6 @@
       canvas.setPointerCapture(e.pointerId);
       activePointerId = e.pointerId;
 
-      // ツールバーを隠す（用紙位置は完全固定されているため一切ズレない）
       if (autoHideOnWrite && !isZenMode) {
         setZenMode(true, false);
       }
@@ -1049,6 +1084,8 @@
 
       isDrawing = true;
       const raw = getRawCanvasCoords(e);
+      s1X = raw.x;
+      s1Y = raw.y;
       smoothX = raw.x;
       smoothY = raw.y;
       smoothP = (raw.p && raw.p > 0) ? raw.p : 0.5;
@@ -1083,8 +1120,12 @@
       for (const ev of events) {
         const raw = getRawCanvasCoords(ev);
 
-        smoothX = smoothX + (raw.x - smoothX) * POS_SMOOTHING;
-        smoothY = smoothY + (raw.y - smoothY) * POS_SMOOTHING;
+        // 2段階カスケード指数平滑化で強い手ブレ補正を実現
+        s1X = s1X + (raw.x - s1X) * STAGE1_SMOOTHING;
+        s1Y = s1Y + (raw.y - s1Y) * STAGE1_SMOOTHING;
+        smoothX = smoothX + (s1X - smoothX) * STAGE2_SMOOTHING;
+        smoothY = smoothY + (s1Y - smoothY) * STAGE2_SMOOTHING;
+
         const targetP = (raw.p && raw.p > 0) ? raw.p : 0.5;
         smoothP = smoothP + (targetP - smoothP) * PRESSURE_SMOOTHING;
 
@@ -1120,24 +1161,34 @@
       }
     });
 
-    function forceFinishActiveStroke() {
+    function forceFinishActiveStroke(finalEvent = null) {
       if (!isDrawing) return;
       isDrawing = false;
 
-      if (currentStroke && currentStroke.points.length >= 2) {
+      if (currentStroke && currentStroke.points.length >= 1) {
         const pts = currentStroke.points;
-        const pPrev = pts[pts.length - 2];
-        const pLast = pts[pts.length - 1];
-        ctx.save();
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
-        ctx.lineWidth = getWidthFromPressure(currentStroke.width, pLast.p, currentStroke.isEraser);
-        ctx.beginPath();
-        ctx.moveTo((pPrev.x + pLast.x) / 2, (pPrev.y + pLast.y) / 2);
-        ctx.lineTo(pLast.x, pLast.y);
-        ctx.stroke();
-        ctx.restore();
+        // ペンを離した最終座標へ滑らかに吸着させ、止め・跳ねが短くならないように補完
+        if (finalEvent && finalEvent.clientX !== undefined) {
+          const endRaw = getRawCanvasCoords(finalEvent);
+          const snapX = smoothX + (endRaw.x - smoothX) * 0.65;
+          const snapY = smoothY + (endRaw.y - smoothY) * 0.65;
+          pts.push({ x: snapX, y: snapY, p: smoothP });
+        }
+
+        if (pts.length >= 2) {
+          const pPrev = pts[pts.length - 2];
+          const pLast = pts[pts.length - 1];
+          ctx.save();
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
+          ctx.lineWidth = getWidthFromPressure(currentStroke.width, pLast.p, currentStroke.isEraser);
+          ctx.beginPath();
+          ctx.moveTo(pts.length === 2 ? pPrev.x : (pPrev.x + pLast.x) / 2, pts.length === 2 ? pPrev.y : (pPrev.y + pLast.y) / 2);
+          ctx.lineTo(pLast.x, pLast.y);
+          ctx.stroke();
+          ctx.restore();
+        }
       }
 
       currentStroke = null;
@@ -1149,7 +1200,7 @@
 
     function endStroke(e) {
       if (!isDrawing) return;
-      forceFinishActiveStroke();
+      forceFinishActiveStroke(e);
 
       if (pendingAutoSave) {
         clearTimeout(autoSaveDelayTimer);
@@ -1168,7 +1219,7 @@
     document.addEventListener('gesturestart', (e) => e.preventDefault());
 
     // ==========================================
-    // 6. 1分タイマー制御
+    // 6. 1分タイマー制御（左から右へ進行する視覚バー）
     // ==========================================
     const timerDisplay = document.getElementById('timerDisplay');
     const hudTimerDisplay = document.getElementById('hudTimerDisplay');
@@ -1181,8 +1232,9 @@
       timerDisplay.textContent = valStr;
       hudTimerDisplay.textContent = valStr;
 
-      const ratio = Math.max(0, remainingTime / LIMIT_SECONDS);
-      progressBar.style.transform = `scaleX(${ratio})`;
+      // 経過割合（0.0 -> 1.0）を計算し、バーが左から右へ伸びて進むように描画
+      const elapsedRatio = Math.min(1, Math.max(0, (LIMIT_SECONDS - remainingTime) / LIMIT_SECONDS));
+      progressBar.style.transform = `scaleX(${elapsedRatio})`;
 
       if ((remainingTime <= 10 && timerRunning) || pendingAutoSave) {
         timerDisplay.classList.add('urgent');
@@ -1257,7 +1309,7 @@
       timerStartedForSheet = false;
       saveNextBtn.textContent = '完了・次へ ➔';
       saveNextBtn.className = 'primary';
-      document.getElementById('hudSaveNextBtn').textContent = '完了 ➔';
+      document.getElementById('hudSaveNextBtn').textContent = '完了・次へ ➔';
       document.getElementById('statusBadge').textContent = '書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）';
       updateTimerUI();
     }
@@ -1541,6 +1593,7 @@
 
       const isWrite = viewId === 'writeView';
       document.getElementById('writeTools').style.display = isWrite ? 'flex' : 'none';
+      document.getElementById('primaryRightActions').style.display = isWrite ? 'flex' : 'none';
       document.getElementById('progressTrack').style.display = isWrite ? 'block' : 'none';
 
       if (viewId === 'folderView') renderFolderView();
