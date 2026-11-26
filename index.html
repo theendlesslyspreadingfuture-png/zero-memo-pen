@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="0 second" />
+  <meta name="theme-color" content="#0d1015" />
+  <title>0 second - ゼロ秒思考 手書きPWA</title>
+
+  <!-- 暗めデジタル調「0 second」ホーム画面アイコン & PWA Manifest 動的生成 -->
+  <script>
+    (function setupDigitalIconAndPWA() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const g = c.getContext('2d');
+
+      // 背景（ダークデジタルグラデーション）
+      const bgGrad = g.createLinearGradient(0, 0, 512, 512);
+      bgGrad.addColorStop(0, '#090c10');
+      bgGrad.addColorStop(1, '#141b26');
+      g.fillStyle = bgGrad;
+      g.fillRect(0, 0, 512, 512);
+
+      // 微細なデジタル回路グリッド線
+      g.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+      g.lineWidth = 2;
+      for (let i = 48; i < 512; i += 64) {
+        g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 512); g.stroke();
+        g.beginPath(); g.moveTo(0, i); g.lineTo(512, i); g.stroke();
+      }
+
+      // 背面のA4デジタルシート枠
+      g.save();
+      g.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+      g.fillStyle = 'rgba(15, 23, 42, 0.78)';
+      g.lineWidth = 3;
+      g.beginPath();
+      g.roundRect(88, 118, 336, 240, 18);
+      g.fill();
+      g.stroke();
+
+      // シート内のメモライン表現
+      g.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+      g.lineWidth = 2;
+      for (let r = 0; r < 5; r++) {
+        const ly = 160 + r * 36;
+        g.beginPath(); g.moveTo(114, ly); g.lineTo(240, ly); g.stroke();
+      }
+      g.restore();
+
+      // ネオン発光するデジタルの「0」
+      g.save();
+      g.shadowColor = '#0ea5e9';
+      g.shadowBlur = 24;
+      g.strokeStyle = '#38bdf8';
+      g.lineWidth = 16;
+      g.beginPath();
+      g.ellipse(256, 228, 86, 126, 0, 0, Math.PI * 2);
+      g.stroke();
+
+      g.strokeStyle = '#e0f2fe';
+      g.lineWidth = 5;
+      g.beginPath();
+      g.ellipse(256, 228, 86, 126, 0, 0, Math.PI * 2);
+      g.stroke();
+      g.restore();
+
+      // スタイラスペン
+      g.save();
+      g.translate(328, 196);
+      g.rotate(Math.PI / 4);
+      g.shadowColor = '#38bdf8';
+      g.shadowBlur = 16;
+      const penGrad = g.createLinearGradient(-12, -130, 12, 130);
+      penGrad.addColorStop(0, '#38bdf8');
+      penGrad.addColorStop(0.5, '#1e3a8a');
+      penGrad.addColorStop(1, '#7dd3fc');
+      g.fillStyle = penGrad;
+      g.beginPath();
+      g.roundRect(-11, -120, 22, 195, 8);
+      g.fill();
+      g.fillStyle = '#e0f2fe';
+      g.beginPath();
+      g.moveTo(-11, 75);
+      g.lineTo(11, 75);
+      g.lineTo(0, 114);
+      g.closePath();
+      g.fill();
+      g.restore();
+
+      // 下部「second」テキスト
+      g.save();
+      g.shadowColor = '#0284c7';
+      g.shadowBlur = 14;
+      g.fillStyle = '#e2e8f0';
+      g.font = '700 68px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      g.textAlign = 'center';
+      g.fillText('second', 256, 456);
+      g.restore();
+
+      const pngDataUrl = c.toDataURL('image/png');
+
+      const appleIcon = document.createElement('link');
+      appleIcon.rel = 'apple-touch-icon';
+      appleIcon.sizes = '512x512';
+      appleIcon.href = pngDataUrl;
+      document.head.appendChild(appleIcon);
+
+      const favIcon = document.createElement('link');
+      favIcon.rel = 'icon';
+      favIcon.type = 'image/png';
+      favIcon.href = pngDataUrl;
+      document.head.appendChild(favIcon);
+
+      const manifest = {
+        name: '0 second - ゼロ秒思考手書き',
+        short_name: '0 second',
+        start_url: './',
+        display: 'standalone',
+        orientation: 'landscape',
+        background_color: '#0d1015',
+        theme_color: '#0d1015',
+        icons: [{ src: pngDataUrl, sizes: '512x512', type: 'image/png' }]
+      };
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+      const linkManifest = document.createElement('link');
+      linkManifest.rel = 'manifest';
+      linkManifest.href = URL.createObjectURL(manifestBlob);
+      document.head.appendChild(linkManifest);
+    })();
+  </script>
+
+  <!-- PDF出力用ライブラリ (jsPDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+
+  <style>
+    :root {
+      --bg-dark: #0d1015;
+      --panel-dark: #161b22;
+      --card-dark: #1c222b;
+      --border-dark: #2b3340;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-blue: #2563eb;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+    }
+
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    /* 上部ナビゲーション＆ツールバー */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 14px;
+      background: var(--panel-dark);
+      border-bottom: 1px solid var(--border-dark);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      background: #0b0e13;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border-dark);
+      gap: 4px;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 13px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .nav-tab.active {
+      background: var(--accent-blue);
+      color: #ffffff;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    select, button {
+      background: #232a35;
+      color: var(--text-main);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    button.primary {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+
+    button.warning {
+      background: var(--warning);
+      border-color: var(--warning);
+      color: #111827;
+    }
+
+    button.danger {
+      color: #fca5a5;
+    }
+
+    .color-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      padding: 0;
+    }
+    .color-dot.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px var(--accent);
+      transform: scale(1.1);
+    }
+
+    /* 今日・累計カウンター（新規メモ画面専用） */
+    .stats-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0b0e13;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 5px 11px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .stats-pill strong {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .stats-pill strong.goal-done {
+      color: var(--success);
+    }
+    .stats-divider {
+      color: var(--border-dark);
+    }
+
+    /* タイマー */
+    .timer-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #0b0e13;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-dark);
+    }
+    .timer-text {
+      font-variant-numeric: tabular-nums;
+      font-size: 17px;
+      font-weight: 800;
+      min-width: 46px;
+      text-align: center;
+      color: var(--accent);
+    }
+    .timer-text.urgent {
+      color: var(--danger);
+      animation: pulse 0.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: #1e293b;
+      flex-shrink: 0;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #38bdf8, #2563eb);
+      transform-origin: left;
+      transition: transform 0.1s linear;
+    }
+    .progress-bar.urgent {
+      background: var(--danger);
+    }
+
+    /* ビュー切り替え */
+    .view-section {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+      flex-direction: column;
+    }
+    .view-section.active {
+      display: flex;
+    }
+
+    /* 1. 新規メモ（手書きステージ） */
+    .canvas-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      overflow: hidden;
+      touch-action: none;
+      position: relative;
+    }
+
+    .paper-wrapper {
+      position: relative;
+      background: #ffffff;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+      border-radius: 4px;
+      aspect-ratio: 297 / 210;
+      max-width: 100%;
+      max-height: 100%;
+      height: 100%;
+      width: auto;
+      touch-action: none;
+    }
+
+    @media (orientation: portrait) {
+      .paper-wrapper {
+        width: 100%;
+        height: auto;
+      }
+    }
+
+    canvas#memoCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .status-badge {
+      position: absolute;
+      bottom: 8px;
+      left: 16px;
+      font-size: 11px;
+      color: #64748b;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.88);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* 2. フォルダ＆全memo 管理画面 */
+    .manager-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: var(--panel-dark);
+      border-bottom: 1px solid var(--border-dark);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .folder-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: #11151c;
+      border-bottom: 1px solid var(--border-dark);
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+
+    .folder-chip {
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--card-dark);
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .folder-chip.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .memo-grid {
+      flex: 1;
+      padding: 16px 18px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 16px;
+      align-content: start;
+    }
+
+    .memo-card {
+      background: var(--card-dark);
+      border: 1px solid var(--border-dark);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .memo-card img {
+      width: 100%;
+      aspect-ratio: 297 / 210;
+      object-fit: cover;
+      background: #fff;
+      display: block;
+      cursor: pointer;
+    }
+
+    .memo-card-body {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .memo-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .memo-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .memo-actions select {
+      flex: 1;
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+
+    /* トースト通知 */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(15, 23, 42, 0.95);
+      color: #fff;
+      border: 1px solid #38bdf8;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.25s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 上部共通バー -->
+    <header class="top-bar">
+      <!-- 3画面切り替えタブ（全memoの枚数表示なし） -->
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-view="writeView">✍️ 新規メモ</button>
+        <button class="nav-tab" data-view="folderView">📁 フォルダ</button>
+        <button class="nav-tab" data-view="allView">🗂️ 全memo</button>
+      </nav>
+
+      <!-- 新規メモ画面専用ツール＆カウンター＆タイマー群（他画面では非表示） -->
+      <div class="tool-group" id="writeTools">
+        <select id="writeFolderSelect" title="保存先フォルダ"></select>
+        <button id="penOnlyBtn" class="active" title="オン時はApple Pencilのみ描画">✒️ ペン専用</button>
+        <button class="color-dot active" data-color="#111827" style="background:#111827;" title="黒（本文）"></button>
+        <button class="color-dot" data-color="#2563eb" style="background:#2563eb;" title="青（注釈）"></button>
+        <button class="color-dot" data-color="#dc2626" style="background:#dc2626;" title="赤（重要注釈）"></button>
+        <button id="eraserBtn" title="消しゴム">消しゴム</button>
+        <button id="undoBtn" title="1画戻す">↩</button>
+        <button id="clearBtn" class="danger" title="白紙に戻す">クリア</button>
+
+        <!-- 今日の達成枚数（目標10枚）＆累計総数 -->
+        <div class="stats-pill" title="1日の目標10枚に対する今日の作成数と全累計枚数">
+          <span>今日 <strong id="todayCount">0</strong>/10枚</span>
+          <span class="stats-divider">｜</span>
+          <span>累計 <strong id="totalCount">0</strong>枚</span>
+        </div>
+
+        <!-- 60秒タイマー（新規メモ画面のみ表示） -->
+        <div class="timer-box">
+          <span id="timerDisplay" class="timer-text">60.0</span>
+          <button id="timerToggleBtn" title="開始/一時停止">▶</button>
+          <button id="timerResetBtn" title="リセット">↺</button>
+        </div>
+
+        <button id="saveNextBtn" class="primary">完了・次へ ➔</button>
+      </div>
+    </header>
+
+    <!-- 残り時間バー（新規メモ画面のみ表示） -->
+    <div class="progress-track" id="progressTrack">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+
+    <!-- ==========================================
+         画面1：新規メモ（起動直後は必ずここから開始）
+         ========================================== -->
+    <section class="view-section active" id="writeView">
+      <main class="canvas-stage" id="canvasStage">
+        <div class="paper-wrapper">
+          <canvas id="memoCanvas" width="2000" height="1414"></canvas>
+          <div class="status-badge" id="statusBadge">書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）</div>
+        </div>
+      </main>
+    </section>
+
+    <!-- ==========================================
+         画面2：フォルダ管理＆フォルダ別PDF出力
+         ========================================== -->
+    <section class="view-section" id="folderView">
+      <div class="manager-header">
+        <div class="tool-group">
+          <strong style="font-size:15px;">📁 フォルダ別整理・PDF出力</strong>
+          <button id="createFolderBtn">＋ 新規フォルダ作成</button>
+        </div>
+        <div class="tool-group">
+          <button id="exportFolderPdfBtn" class="primary">📄 選択中フォルダをA4 PDF出力</button>
+        </div>
+      </div>
+      <div class="folder-chips" id="folderChipsBar"></div>
+      <div class="memo-grid" id="folderMemoGrid"></div>
+    </section>
+
+    <!-- ==========================================
+         画面3：全memo（時系列一覧・フォルダ分類・追記訂正・タイマーなし）
+         ========================================== -->
+    <section class="view-section" id="allView">
+      <div class="manager-header">
+        <div class="tool-group">
+          <strong style="font-size:15px;">🗂️ 全memo一覧（分類・注釈追記・訂正）</strong>
+          <select id="allFilterSelect">
+            <option value="__ALL__">すべて表示</option>
+            <option value="未分類">未分類のみ表示</option>
+          </select>
+        </div>
+        <div class="tool-group">
+          <button id="sortOrderBtn">並び順：新しい順 ⬇</button>
+        </div>
+      </div>
+      <div class="memo-grid" id="allMemoGrid"></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // ==========================================
+    // 1. 定数・状態管理
+    // ==========================================
+    const CANVAS_W = 2000;
+    const CANVAS_H = 1414;
+    const LIMIT_SECONDS = 60.0;
+    const DAILY_GOAL = 10;
+    const UNCLASSIFIED = '未分類';
+
+    const canvas = document.getElementById('memoCanvas');
+    const ctx = canvas.getContext('2d', { desynchronized: true });
+
+    let penOnly = true;
+    let isEraser = false;
+    let currentColor = '#111827';
+    let baseLineWidth = 4.8;
+
+    let strokes = [];
+    let currentStroke = null;
+    let isDrawing = false;
+
+    // 既存メモの追記・訂正状態
+    let editingMemoId = null;
+    let editingMemoDateStr = null;
+    let editingMemoCreatedAt = null;
+    let editingMemoFolder = UNCLASSIFIED;
+
+    // タイマー状態
+    let remainingTime = LIMIT_SECONDS;
+    let timerRunning = false;
+    let timerStartedForSheet = false;
+    let lastTickTime = null;
+    let rafId = null;
+
+    // フォルダ状態
+    const INITIAL_FOLDERS = [UNCLASSIFIED, '思考整理', '仕事', 'アイデア', 'トレード・相場'];
+    let folders = JSON.parse(localStorage.getItem('zm_pen6_folders') || 'null') || [...INITIAL_FOLDERS];
+    if (!folders.includes(UNCLASSIFIED)) folders.unshift(UNCLASSIFIED);
+
+    let selectedWriteFolder = UNCLASSIFIED;
+    let selectedBrowseFolder = UNCLASSIFIED;
+    let sortNewestFirst = true;
+
+    // ==========================================
+    // 2. IndexedDB（全メモ・ストローク永続化）
+    // ==========================================
+    const DB_NAME = 'ZeroMemoPen6LinesDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'memos';
+    let db = null;
+
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains(STORE_NAME)) {
+            const store = database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            store.createIndex('folder', 'folder', { unique: false });
+            store.createIndex('createdAt', 'createdAt', { unique: false });
+          }
+        };
+        req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+        req.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    function saveOrUpdateMemo(memoObj) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = memoObj.id ? store.put(memoObj) : store.add(memoObj);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function getAllMemos() {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function deleteMemoById(id) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    // ==========================================
+    // 3. A4テンプレート描画（日付自動表示・タイトル下線・最大6行＋注釈余白）
+    // ==========================================
+    function getTodayString() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}/${m}/${d}`;
+    }
+
+    function isCreatedToday(timestamp) {
+      const d = new Date(timestamp);
+      const now = new Date();
+      return d.getFullYear() === now.getFullYear() &&
+             d.getMonth() === now.getMonth() &&
+             d.getDate() === now.getDate();
+    }
+
+    function drawTemplate() {
+      ctx.save();
+      ctx.globalCompositeOperation = 'source-over';
+
+      // 白紙
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+      // タイトル下線（初めから表示）
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      ctx.moveTo(100, 175);
+      ctx.lineTo(1220, 175);
+      ctx.stroke();
+
+      // 日付（右上に自動表示）
+      const displayDate = editingMemoDateStr || getTodayString();
+      ctx.fillStyle = '#334155';
+      ctx.font = '600 40px -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(displayDate, CANVAS_W - 100, 165);
+
+      // 最大6行の記入欄 ＋ 各行の下に注釈を書き込める余白＆点線ガイド
+      const rowYs = [295, 480, 665, 850, 1035, 1220];
+      rowYs.forEach((y) => {
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.arc(125, y - 14, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(152, y);
+        ctx.lineTo(CANVAS_W - 100, y);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.setLineDash([7, 9]);
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(190, y + 84);
+        ctx.lineTo(CANVAS_W - 100, y + 84);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      ctx.restore();
+    }
+
+    function renderAllStrokes() {
+      drawTemplate();
+      for (const stroke of strokes) {
+        drawSingleStroke(stroke);
+      }
+    }
+
+    function drawSingleStroke(stroke) {
+      const pts = stroke.points;
+      if (!pts || pts.length === 0) return;
+
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = stroke.isEraser ? '#ffffff' : stroke.color;
+
+      if (pts.length === 1) {
+        const p = pts[0];
+        const w = getWidthFromPressure(stroke.width, p.p, stroke.isEraser);
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, w / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        return;
+      }
+
+      for (let i = 1; i < pts.length; i++) {
+        const prev = pts[i - 1];
+        const curr = pts[i];
+        const midX = (prev.x + curr.x) / 2;
+        const midY = (prev.y + curr.y) / 2;
+        const startX = i === 1 ? prev.x : (pts[i - 2].x + prev.x) / 2;
+        const startY = i === 1 ? prev.y : (pts[i - 2].y + prev.y) / 2;
+
+        ctx.lineWidth = getWidthFromPressure(stroke.width, curr.p, stroke.isEraser);
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.quadraticCurveTo(prev.x, prev.y, midX, midY);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function getWidthFromPressure(base, pressure, eraser) {
+      if (eraser) return 36;
+      const p = (pressure && pressure > 0) ? pressure : 0.5;
+      return base * (0.45 + p * 1.15);
+    }
+
+    // ==========================================
+    // 4. Apple Pencil 描画制御
+    // ==========================================
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (CANVAS_W / rect.width),
+        y: (e.clientY - rect.top) * (CANVAS_H / rect.height),
+        p: e.pressure !== undefined ? e.pressure : 0.5
+      };
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      if (penOnly && e.pointerType !== 'pen') return;
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+
+      // 新規メモ時のみ、1画目で60秒タイマー自動スタート
+      if (!timerStartedForSheet && editingMemoId === null) {
+        timerStartedForSheet = true;
+        startTimer();
+        document.getElementById('statusBadge').textContent = '集中計測中...（60秒経過で自動保存）';
+      }
+
+      isDrawing = true;
+      const pt = getCanvasCoords(e);
+      currentStroke = {
+        points: [pt],
+        color: currentColor,
+        width: baseLineWidth,
+        isEraser: isEraser
+      };
+      strokes.push(currentStroke);
+
+      ctx.save();
+      ctx.fillStyle = isEraser ? '#ffffff' : currentColor;
+      const w = getWidthFromPressure(baseLineWidth, pt.p, isEraser);
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, w / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!isDrawing || !currentStroke) return;
+      if (penOnly && e.pointerType !== 'pen') return;
+
+      e.preventDefault();
+      const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      for (const ev of events) {
+        const pt = getCanvasCoords(ev);
+        const pts = currentStroke.points;
+        pts.push(pt);
+
+        if (pts.length >= 2) {
+          const i = pts.length - 1;
+          const prev = pts[i - 1];
+          const curr = pts[i];
+          const midX = (prev.x + curr.x) / 2;
+          const midY = (prev.y + curr.y) / 2;
+          const startX = i === 1 ? prev.x : (pts[i - 2].x + prev.x) / 2;
+          const startY = i === 1 ? prev.y : (pts[i - 2].y + prev.y) / 2;
+
+          ctx.save();
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
+          ctx.lineWidth = getWidthFromPressure(currentStroke.width, curr.p, currentStroke.isEraser);
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.quadraticCurveTo(prev.x, prev.y, midX, midY);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    });
+
+    function endStroke(e) {
+      if (!isDrawing) return;
+      isDrawing = false;
+      currentStroke = null;
+      if (e && e.pointerId !== undefined && canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId);
+      }
+    }
+
+    canvas.addEventListener('pointerup', endStroke);
+    canvas.addEventListener('pointercancel', endStroke);
+
+    document.addEventListener('touchmove', (e) => {
+      if (e.target.closest('.canvas-stage')) e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+
+    // ==========================================
+    // 5. 1分タイマー制御
+    // ==========================================
+    const timerDisplay = document.getElementById('timerDisplay');
+    const progressBar = document.getElementById('progressBar');
+    const timerToggleBtn = document.getElementById('timerToggleBtn');
+    const saveNextBtn = document.getElementById('saveNextBtn');
+
+    function updateTimerUI() {
+      timerDisplay.textContent = Math.max(0, remainingTime).toFixed(1);
+      const ratio = Math.max(0, remainingTime / LIMIT_SECONDS);
+      progressBar.style.transform = `scaleX(${ratio})`;
+
+      if (remainingTime <= 10 && timerRunning) {
+        timerDisplay.classList.add('urgent');
+        progressBar.classList.add('urgent');
+      } else {
+        timerDisplay.classList.remove('urgent');
+        progressBar.classList.remove('urgent');
+      }
+      timerToggleBtn.textContent = timerRunning ? '⏸' : '▶';
+    }
+
+    function timerLoop(now) {
+      if (!timerRunning) return;
+      if (!lastTickTime) lastTickTime = now;
+      const dt = (now - lastTickTime) / 1000;
+      lastTickTime = now;
+
+      remainingTime -= dt;
+      if (remainingTime <= 0) {
+        remainingTime = 0;
+        timerRunning = false;
+        updateTimerUI();
+        playSoftChime();
+        completeAndNextSheet(true);
+        return;
+      }
+      updateTimerUI();
+      rafId = requestAnimationFrame(timerLoop);
+    }
+
+    function startTimer() {
+      if (timerRunning) return;
+      timerRunning = true;
+      lastTickTime = performance.now();
+      updateTimerUI();
+      rafId = requestAnimationFrame(timerLoop);
+    }
+
+    function pauseTimer() {
+      timerRunning = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      updateTimerUI();
+    }
+
+    function resetToNewSheetState() {
+      pauseTimer();
+      editingMemoId = null;
+      editingMemoDateStr = null;
+      editingMemoCreatedAt = null;
+      editingMemoFolder = selectedWriteFolder;
+      remainingTime = LIMIT_SECONDS;
+      timerStartedForSheet = false;
+      saveNextBtn.textContent = '完了・次へ ➔';
+      saveNextBtn.className = 'primary';
+      document.getElementById('statusBadge').textContent = '書き始めると自動で60秒タイマーが開始します（最大6行＋各行下の余白に注釈記入可）';
+      updateTimerUI();
+    }
+
+    function playSoftChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (_) {}
+    }
+
+    // ==========================================
+    // 6. 保存・新規シート切替・追記訂正・統計更新・PDF出力
+    // ==========================================
+    async function updateStatsDisplay() {
+      const all = await getAllMemos();
+      const todayNum = all.filter(m => isCreatedToday(m.createdAt)).length;
+      const totalNum = all.length;
+
+      const todayEl = document.getElementById('todayCount');
+      const totalEl = document.getElementById('totalCount');
+      todayEl.textContent = todayNum;
+      totalEl.textContent = totalNum;
+
+      if (todayNum >= DAILY_GOAL) {
+        todayEl.classList.add('goal-done');
+      } else {
+        todayEl.classList.remove('goal-done');
+      }
+    }
+
+    async function completeAndNextSheet(isAuto = false) {
+      pauseTimer();
+
+      if (strokes.length === 0 && editingMemoId === null) {
+        resetToNewSheetState();
+        renderAllStrokes();
+        showToast(isAuto ? '時間終了（白紙のためスキップ）' : '白紙をリセットしました');
+        return;
+      }
+
+      renderAllStrokes();
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      const targetFolder = document.getElementById('writeFolderSelect').value || UNCLASSIFIED;
+
+      const payload = {
+        folder: targetFolder,
+        createdAt: editingMemoCreatedAt || Date.now(),
+        dateStr: editingMemoDateStr || getTodayString(),
+        imageDataUrl: dataUrl,
+        strokes: JSON.parse(JSON.stringify(strokes))
+      };
+      if (editingMemoId !== null) {
+        payload.id = editingMemoId;
+      }
+
+      const wasEditing = editingMemoId !== null;
+      await saveOrUpdateMemo(payload);
+
+      strokes = [];
+      resetToNewSheetState();
+      renderAllStrokes();
+      await updateStatsDisplay();
+
+      if (wasEditing) {
+        showToast(`追記・訂正を上書き保存しました（${targetFolder}）`);
+      } else {
+        showToast(isAuto ? `60秒経過：「${targetFolder}」に自動保存しました` : `「${targetFolder}」に保存しました`);
+      }
+    }
+
+    // 全memo / フォルダから対象メモを読み込んで追記・訂正する
+    function openMemoForEdit(memo) {
+      switchView('writeView');
+      pauseTimer();
+
+      editingMemoId = memo.id;
+      editingMemoDateStr = memo.dateStr;
+      editingMemoCreatedAt = memo.createdAt;
+      editingMemoFolder = memo.folder || UNCLASSIFIED;
+      document.getElementById('writeFolderSelect').value = editingMemoFolder;
+
+      strokes = memo.strokes ? JSON.parse(JSON.stringify(memo.strokes)) : [];
+      timerStartedForSheet = true;
+
+      saveNextBtn.textContent = '追記・訂正を保存 ✔';
+      saveNextBtn.className = 'warning';
+      document.getElementById('statusBadge').textContent = '【追記・訂正モード】青・赤ペンで下の余白に注釈追加や消しゴム修正ができます（タイマー停止中）';
+
+      renderAllStrokes();
+      showToast('メモを読み込みました。注釈の追記や訂正ができます');
+    }
+
+    function syncFolderSelectors() {
+      const writeSel = document.getElementById('writeFolderSelect');
+      writeSel.innerHTML = '';
+      folders.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f;
+        opt.textContent = f === UNCLASSIFIED ? '📥 未分類（後で整理）' : `📁 ${f}`;
+        if (f === selectedWriteFolder) opt.selected = true;
+        writeSel.appendChild(opt);
+      });
+
+      const filterSel = document.getElementById('allFilterSelect');
+      const prevVal = filterSel.value;
+      filterSel.innerHTML = `
+        <option value="__ALL__">すべて表示</option>
+        <option value="${UNCLASSIFIED}">未分類のみ表示</option>
+      `;
+      folders.filter(f => f !== UNCLASSIFIED).forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f;
+        opt.textContent = `📁 ${f}`;
+        filterSel.appendChild(opt);
+      });
+      if ([...filterSel.options].some(o => o.value === prevVal)) {
+        filterSel.value = prevVal;
+      }
+    }
+
+    function createMemoCardElement(memo, onRefresh) {
+      const card = document.createElement('div');
+      card.className = 'memo-card';
+      const timeStr = new Date(memo.createdAt).toLocaleString('ja-JP', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      });
+
+      const folderOptionsHtml = folders.map(f =>
+        `<option value="${f}" ${f === (memo.folder || UNCLASSIFIED) ? 'selected' : ''}>📁 ${f}</option>`
+      ).join('');
+
+      card.innerHTML = `
+        <img src="${memo.imageDataUrl}" alt="memo" title="タップして追記・訂正" />
+        <div class="memo-card-body">
+          <div class="memo-meta">
+            <span>${timeStr}</span>
+            <span>${memo.folder || UNCLASSIFIED}</span>
+          </div>
+          <div class="memo-actions">
+            <select class="move-folder-sel" title="フォルダへ分類">${folderOptionsHtml}</select>
+            <button class="edit-btn">追記・訂正</button>
+            <button class="danger del-btn">削除</button>
+          </div>
+        </div>
+      `;
+
+      card.querySelector('img').addEventListener('click', () => openMemoForEdit(memo));
+      card.querySelector('.edit-btn').addEventListener('click', () => openMemoForEdit(memo));
+
+      card.querySelector('.move-folder-sel').addEventListener('change', async (e) => {
+        const newFolder = e.target.value;
+        memo.folder = newFolder;
+        await saveOrUpdateMemo(memo);
+        showToast(`「${newFolder}」へ分類しました`);
+        if (onRefresh) await onRefresh();
+      });
+
+      card.querySelector('.del-btn').addEventListener('click', async () => {
+        await deleteMemoById(memo.id);
+        await updateStatsDisplay();
+        showToast('メモを削除しました');
+        if (onRefresh) await onRefresh();
+      });
+
+      return card;
+    }
+
+    async function renderFolderView() {
+      const all = await getAllMemos();
+      const chipsBar = document.getElementById('folderChipsBar');
+      const grid = document.getElementById('folderMemoGrid');
+
+      chipsBar.innerHTML = '';
+      folders.forEach(f => {
+        const count = all.filter(m => (m.folder || UNCLASSIFIED) === f).length;
+        const chip = document.createElement('button');
+        chip.className = 'folder-chip' + (f === selectedBrowseFolder ? ' active' : '');
+        chip.textContent = `${f === UNCLASSIFIED ? '📥 未分類' : '📁 ' + f} (${count})`;
+        chip.addEventListener('click', () => {
+          selectedBrowseFolder = f;
+          renderFolderView();
+        });
+        chipsBar.appendChild(chip);
+      });
+
+      const filtered = all
+        .filter(m => (m.folder || UNCLASSIFIED) === selectedBrowseFolder)
+        .sort((a, b) => b.createdAt - a.createdAt);
+
+      grid.innerHTML = '';
+      if (filtered.length === 0) {
+        grid.innerHTML = `<p style="color:#94a3b8; grid-column:1/-1;">「${selectedBrowseFolder}」にはまだメモがありません。</p>`;
+        return;
+      }
+      filtered.forEach(m => {
+        grid.appendChild(createMemoCardElement(m, renderFolderView));
+      });
+    }
+
+    async function renderAllMemoView() {
+      const all = await getAllMemos();
+      const filterVal = document.getElementById('allFilterSelect').value;
+      const grid = document.getElementById('allMemoGrid');
+
+      let list = [...all];
+      if (filterVal !== '__ALL__') {
+        list = list.filter(m => (m.folder || UNCLASSIFIED) === filterVal);
+      }
+      list.sort((a, b) => sortNewestFirst ? (b.createdAt - a.createdAt) : (a.createdAt - b.createdAt));
+
+      grid.innerHTML = '';
+      if (list.length === 0) {
+        grid.innerHTML = '<p style="color:#94a3b8; grid-column:1/-1;">該当するメモはありません。</p>';
+        return;
+      }
+      list.forEach(m => {
+        grid.appendChild(createMemoCardElement(m, renderAllMemoView));
+      });
+    }
+
+    async function exportSelectedFolderPDF() {
+      const all = await getAllMemos();
+      const memos = all
+        .filter(m => (m.folder || UNCLASSIFIED) === selectedBrowseFolder)
+        .sort((a, b) => a.createdAt - b.createdAt);
+
+      if (memos.length === 0) {
+        showToast(`「${selectedBrowseFolder}」にメモがありません`);
+        return;
+      }
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        showToast('PDFライブラリの読み込み中です。オンライン環境でお試しください');
+        return;
+      }
+
+      showToast(`PDF作成中... (${memos.length}枚)`);
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+      memos.forEach((m, idx) => {
+        if (idx > 0) doc.addPage('a4', 'landscape');
+        doc.addImage(m.imageDataUrl, 'JPEG', 0, 0, 297, 210);
+      });
+
+      const fileName = `0second_${selectedBrowseFolder}_${getTodayString().replace(/\//g, '-')}.pdf`;
+      doc.save(fileName);
+      showToast(`PDF出力完了: ${fileName}`);
+    }
+
+    // タブ切り替え制御（新規メモ以外ではタイマー・ペンツールを確実に非表示）
+    function switchView(viewId) {
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === viewId);
+      });
+      document.querySelectorAll('.view-section').forEach(sec => {
+        sec.classList.toggle('active', sec.id === viewId);
+      });
+
+      const isWrite = viewId === 'writeView';
+      document.getElementById('writeTools').style.display = isWrite ? 'flex' : 'none';
+      document.getElementById('progressTrack').style.display = isWrite ? 'block' : 'none';
+
+      if (viewId === 'folderView') renderFolderView();
+      if (viewId === 'allView') renderAllMemoView();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ==========================================
+    // 7. イベント配線・起動処理
+    // ==========================================
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchView(tab.dataset.view));
+    });
+
+    document.getElementById('penOnlyBtn').addEventListener('click', (e) => {
+      penOnly = !penOnly;
+      e.currentTarget.classList.toggle('active', penOnly);
+      e.currentTarget.textContent = penOnly ? '✒️ ペン専用' : '👆 指/ペン両用';
+      showToast(penOnly ? 'Apple Pencil専用モード（手のひら誤タッチ防止ON）' : '指・マウス描画も有効にしました');
+    });
+
+    document.querySelectorAll('.color-dot').forEach(btn => {
+      btn.addEventListener('click', () => {
+        isEraser = false;
+        document.getElementById('eraserBtn').classList.remove('active');
+        document.querySelectorAll('.color-dot').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentColor = btn.dataset.color;
+      });
+    });
+
+    document.getElementById('eraserBtn').addEventListener('click', (e) => {
+      isEraser = !isEraser;
+      e.currentTarget.classList.toggle('active', isEraser);
+      if (isEraser) {
+        document.querySelectorAll('.color-dot').forEach(b => b.classList.remove('active'));
+      }
+    });
+
+    document.getElementById('undoBtn').addEventListener('click', () => {
+      if (strokes.length === 0) return;
+      strokes.pop();
+      renderAllStrokes();
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      strokes = [];
+      resetToNewSheetState();
+      renderAllStrokes();
+    });
+
+    timerToggleBtn.addEventListener('click', () => {
+      if (timerRunning) pauseTimer();
+      else startTimer();
+    });
+
+    document.getElementById('timerResetBtn').addEventListener('click', resetToNewSheetState);
+    saveNextBtn.addEventListener('click', () => completeAndNextSheet(false));
+
+    document.getElementById('writeFolderSelect').addEventListener('change', (e) => {
+      selectedWriteFolder = e.target.value;
+    });
+
+    document.getElementById('createFolderBtn').addEventListener('click', async () => {
+      const name = prompt('新しいフォルダ名を入力してください：');
+      if (!name || !name.trim()) return;
+      const trimmed = name.trim();
+      if (!folders.includes(trimmed)) {
+        folders.push(trimmed);
+        localStorage.setItem('zm_pen6_folders', JSON.stringify(folders));
+      }
+      selectedBrowseFolder = trimmed;
+      syncFolderSelectors();
+      await renderFolderView();
+      showToast(`フォルダ「${trimmed}」を作成しました`);
+    });
+
+    document.getElementById('exportFolderPdfBtn').addEventListener('click', exportSelectedFolderPDF);
+    document.getElementById('allFilterSelect').addEventListener('change', renderAllMemoView);
+    document.getElementById('sortOrderBtn').addEventListener('click', (e) => {
+      sortNewestFirst = !sortNewestFirst;
+      e.currentTarget.textContent = sortNewestFirst ? '並び順：新しい順 ⬇' : '並び順：古い順 ⬆';
+      renderAllMemoView();
+    });
+
+    // 起動直後は必ず新規シート（writeView）から開始
+    (async function boot() {
+      await initDB();
+      syncFolderSelectors();
+      resetToNewSheetState();
+      renderAllStrokes();
+      await updateStatsDisplay();
+      switchView('writeView');
+    })();
+  </script>
+</body>
+</html>
