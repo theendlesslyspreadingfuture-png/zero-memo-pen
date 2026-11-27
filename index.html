@@ -43,23 +43,17 @@
       g.strokeStyle = 'rgba(56, 189, 248, 0.14)';
       g.lineWidth = 1.5;
       g.beginPath();
-      // 左上
       g.moveTo(32, 64); g.lineTo(32, 32); g.lineTo(64, 32);
-      // 右上
       g.moveTo(480, 64); g.lineTo(480, 32); g.lineTo(448, 32);
-      // 左下
       g.moveTo(32, 448); g.lineTo(32, 480); g.lineTo(64, 480);
-      // 右下
       g.moveTo(480, 448); g.lineTo(480, 480); g.lineTo(448, 480);
       g.stroke();
 
-      // 細かい回路
       g.beginPath();
       g.moveTo(40, 180); g.lineTo(80, 180); g.lineTo(100, 160);
       g.moveTo(472, 320); g.lineTo(432, 320); g.lineTo(412, 340);
       g.stroke();
 
-      // ドット＆極小システム文字
       g.fillStyle = 'rgba(56, 189, 248, 0.15)';
       for (let i = 0; i < 12; i++) {
         g.fillRect(40, 70 + i * 15, 2, 2);
@@ -72,13 +66,12 @@
       g.fillText('DATA.LOAD', 416, 48);
       g.fillText('MOD.ACTIVE', 408, 458);
 
-      // 4. 同心円HUD（ターゲットサークル、点線など多重構造）
+      // 4. 同心円HUD
       g.save();
       g.translate(256, 230);
       g.shadowColor = '#0284c7';
       g.shadowBlur = 8;
-      
-      // アウターサークル (破線)
+
       g.strokeStyle = 'rgba(14, 165, 233, 0.12)';
       g.lineWidth = 1;
       g.beginPath(); g.arc(0, 0, 204, 0, Math.PI * 2); g.stroke();
@@ -87,13 +80,11 @@
       g.setLineDash([4, 12]);
       g.beginPath(); g.arc(0, 0, 180, 0, Math.PI * 2); g.stroke();
 
-      // ミドルサークル (目盛り風)
       g.setLineDash([2, 4]);
       g.strokeStyle = 'rgba(6, 182, 212, 0.22)';
       g.lineWidth = 1.5;
       g.beginPath(); g.arc(0, 0, 150, 0, Math.PI * 2); g.stroke();
-      
-      // インナー目盛りサークル (24分割)
+
       g.setLineDash([]);
       g.lineWidth = 1;
       g.strokeStyle = 'rgba(56, 189, 248, 0.1)';
@@ -116,23 +107,19 @@
       g.bezierCurveTo(55, -65, 125, -65, 125, 0);
       g.bezierCurveTo(125, 65, 55, 65, 0, 0);
       g.stroke();
-      
-      // インナー光
+
       g.strokeStyle = 'rgba(56, 189, 248, 0.65)';
       g.lineWidth = 2;
       g.stroke();
       g.restore();
 
-      // 6. デジタルスタイラスペン（ハイテック目盛り付き）
+      // 6. デジタルスタイラスペン
       g.save();
       g.translate(256, 230);
       g.rotate(Math.PI / 4.5);
-      
-      // ペン影
       g.shadowColor = '#38bdf8';
       g.shadowBlur = 14;
-      
-      // シャープなペン先・本体
+
       const penGrad = g.createLinearGradient(-5, -155, 5, 155);
       penGrad.addColorStop(0, '#0ea5e9');
       penGrad.addColorStop(0.4, '#38bdf8');
@@ -142,7 +129,6 @@
       g.roundRect(-4.5, -140, 9, 245, 2);
       g.fill();
 
-      // デジタル目盛り・グリップ
       g.fillStyle = '#ffffff';
       g.fillRect(-3, -120, 6, 1.5);
       g.fillRect(-3, -110, 6, 1.5);
@@ -150,7 +136,6 @@
       g.fillRect(-4.5, -70, 9, 3);
       g.fillRect(-4.5, -45, 9, 3);
 
-      // レーザー光線のような輝くペン先
       g.fillStyle = '#e0f2fe';
       g.beginPath();
       g.moveTo(-4.5, 105);
@@ -160,19 +145,17 @@
       g.fill();
       g.restore();
 
-      // 7. 最前面で超強力に発光する「0（ゼロ）」
+      // 7. 最前面で発光する「0（ゼロ）」
       g.save();
       g.translate(256, 230);
       g.shadowColor = '#38bdf8';
       g.shadowBlur = 35;
-      
-      // 「0」の外殻セグメント (HUD括弧)
+
       g.strokeStyle = 'rgba(56, 189, 248, 0.22)';
       g.lineWidth = 1.5;
       g.beginPath(); g.ellipse(0, 0, 96, 158, 0, -Math.PI/4, Math.PI/4); g.stroke();
       g.beginPath(); g.ellipse(0, 0, 96, 158, 0, Math.PI - Math.PI/4, Math.PI + Math.PI/4); g.stroke();
 
-      // 太いサイバーネオン「0」
       const zeroGrad = g.createLinearGradient(0, -145, 0, 145);
       zeroGrad.addColorStop(0, '#ffffff');
       zeroGrad.addColorStop(0.5, '#bae6fd');
@@ -185,7 +168,6 @@
       g.ellipse(0, 0, 72, 134, 0, 0, Math.PI * 2);
       g.stroke();
 
-      // 内側の電脳ライン（高輝度のホワイト細線）
       g.strokeStyle = '#ffffff';
       g.lineWidth = 3.5;
       g.shadowBlur = 10;
@@ -198,14 +180,12 @@
       g.save();
       g.shadowColor = '#0284c7';
       g.shadowBlur = 20;
-      
-      // ネオンベース
+
       g.fillStyle = 'rgba(56, 189, 248, 0.9)';
       g.font = '700 48px "Share Tech Mono", monospace, -apple-system, BlinkMacSystemFont, sans-serif';
       g.textAlign = 'center';
       g.fillText('0 second', 256, 456);
 
-      // ホワイトコア（文字の中央を白くして発光感を再現）
       g.fillStyle = '#ffffff';
       g.shadowBlur = 0;
       g.font = '700 48px "Share Tech Mono", monospace, -apple-system, BlinkMacSystemFont, sans-serif';
@@ -293,7 +273,6 @@
       position: relative;
     }
 
-    /* 独立オーバーレイヘッダー（最上部の太いデジタルバーの直下に配置） */
     .top-header-overlay {
       position: fixed;
       top: calc(env(safe-area-inset-top) + 10px);
@@ -493,9 +472,6 @@
       50% { opacity: 0.35; }
     }
 
-    /* ==========================================
-       太め・高視認性 デジタルLED風タイムバー（左→右）
-       ========================================== */
     .progress-track {
       position: fixed;
       top: env(safe-area-inset-top);
@@ -519,14 +495,12 @@
       transition: height 0.2s ease, border-color 0.2s ease;
     }
 
-    /* ツールバー収納（筆記中）はバーをさらに太く（16px）して視認性を最大化 */
     .app-container.zen-mode .progress-track {
       height: 16px;
       border-bottom: 1px solid rgba(56, 189, 248, 0.55);
       box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 3px 14px rgba(2, 132, 199, 0.35);
     }
 
-    /* 10秒ごとの等間隔デジタル目盛りオーバーレイ */
     .progress-track::after {
       content: "";
       position: absolute;
@@ -562,7 +536,6 @@
       z-index: 2;
     }
 
-    /* 進行先端のデジタルレーザーエッジ */
     .progress-bar::after {
       content: "";
       position: absolute;
@@ -591,7 +564,6 @@
       box-shadow: 0 0 10px #ffffff, 0 0 18px #ef4444;
     }
 
-    /* 各ビューの配置（太くなった上部デジタルバー＋ヘッダー分を確保し、用紙位置を完全固定） */
     .view-section {
       display: none;
       flex: 1;
@@ -804,7 +776,6 @@
       font-size: 12px;
     }
 
-    /* 単体メモ拡大プレビュー＆横スワイプ切り替えビューア */
     .memo-viewer-overlay {
       position: fixed;
       inset: 0;
@@ -951,7 +922,6 @@
 </head>
 <body>
   <div class="app-container" id="appContainer">
-    <!-- 最上部 太めデジタルLEDタイムバー -->
     <div class="progress-track" id="progressTrack">
       <div id="progressBar" class="progress-bar"></div>
     </div>
@@ -980,10 +950,11 @@
           <button class="color-dot" data-color="#2563eb" style="background:#2563eb;" title="青（注釈）"></button>
           <button class="color-dot" data-color="#dc2626" style="background:#dc2626;" title="赤（重要注釈）"></button>
 
+          <!-- ペンの太さ：1段階ずつ細く調整（細:3.95 / 中:4.8 / 太:5.65） -->
           <div class="width-group" title="ペンの太さ">
-            <button class="width-btn" data-width="4.8">細</button>
-            <button class="width-btn active" data-width="5.65">中</button>
-            <button class="width-btn" data-width="6.5">太</button>
+            <button class="width-btn" data-width="3.95">細</button>
+            <button class="width-btn active" data-width="4.8">中</button>
+            <button class="width-btn" data-width="5.65">太</button>
           </div>
 
           <button id="eraserBtn" title="消しゴム">消しゴム</button>
@@ -1059,7 +1030,6 @@
     </section>
   </div>
 
-  <!-- 単体メモ拡大プレビュー＆横スワイプ切り替えビューア -->
   <div class="memo-viewer-overlay" id="memoViewerOverlay">
     <div class="viewer-topbar">
       <div class="tool-group">
@@ -1089,7 +1059,7 @@
 
   <script>
     // ==========================================
-    // 1. 高精細キャンバス設定＆かすれ防止・軽快手ブレ補正パラメータ
+    // 1. 高精細キャンバス設定＆高レスポンス手ブレ補正パラメータ
     // ==========================================
     const CANVAS_W = 2400;
     const CANVAS_H = 1697;
@@ -1107,7 +1077,7 @@
     let penOnly = true;
     let isEraser = false;
     let currentColor = '#111827';
-    let baseLineWidth = 5.65;
+    let baseLineWidth = 4.8; // 新しい「中」の標準太さ
 
     let autoHideOnWrite = JSON.parse(localStorage.getItem('zm_auto_hide_toolbar') ?? 'true');
     let isZenMode = false;
@@ -1121,11 +1091,12 @@
     let autoSaveDelayTimer = null;
     let inputLockedUntil = 0;
 
+    // 手ブレ補正を少し弱めて追従性を向上＆細かい画の無反応を防止
     let smoothX = 0, smoothY = 0;
     let smoothP = 0.6;
-    const POS_SMOOTHING = 0.68;
-    const PRESSURE_SMOOTHING = 0.55;
-    const MIN_POINT_DIST = 1.4;
+    const POS_SMOOTHING = 0.78;      // 0.68 -> 0.78 に引き上げ（補正を弱め、ペン先への追従性を向上）
+    const PRESSURE_SMOOTHING = 0.65; // 筆圧追従をさらに軽快に
+    const MIN_POINT_DIST = 0.8;      // 1.4 -> 0.8 に縮小（短い画や小さな点も即座に反応）
 
     let editingMemoId = null;
     let editingMemoDateStr = null;
@@ -1404,8 +1375,12 @@
       if (pendingAutoSave) return;
 
       e.preventDefault();
-      canvas.setPointerCapture(e.pointerId);
-      activePointerId = e.pointerId;
+      try {
+        canvas.setPointerCapture(e.pointerId);
+        activePointerId = e.pointerId;
+      } catch (_) {
+        activePointerId = null;
+      }
 
       if (autoHideOnWrite && !isZenMode) {
         setZenMode(true, false);
@@ -1506,7 +1481,7 @@
         if (finalEvent && finalEvent.clientX !== undefined) {
           const endRaw = getRawCanvasCoords(finalEvent);
           const last = pts[pts.length - 1];
-          if (Math.hypot(endRaw.x - last.x, endRaw.y - last.y) > 0.5) {
+          if (Math.hypot(endRaw.x - last.x, endRaw.y - last.y) > 0.4) {
             pts.push({ x: endRaw.x, y: endRaw.y, p: smoothP });
           }
         }
@@ -1696,7 +1671,7 @@
       paperWrapper.classList.remove('finishing-stroke');
 
       forceFinishActiveStroke();
-      inputLockedUntil = performance.now() + 600;
+      inputLockedUntil = performance.now() + 350;
 
       if (autoHideOnWrite && isZenMode) {
         setZenMode(false, false);
